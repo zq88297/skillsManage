@@ -7,6 +7,7 @@
 更换 agent 或开新项目时，需要重新配置所有技能。手动复制容易导致版本不一致、遗漏依赖、丢失改进。
 
 这个仓库作为**唯一真相来源（source of truth）**：
+
 - 📦 **一键安装** — 一条命令部署全部 20 个技能到新项目
 - 🔄 **双向同步** — 在项目中改进的技能可以推送回仓库
 - 🔗 **自动依赖解析** — 安装 `project-workflow` 会自动带上 `session-context`
@@ -15,9 +16,43 @@
 
 ## 快速开始
 
+### 一键安装（推荐）
+
+在你的项目目录下运行一条命令即可：
+
+**macOS / Linux:**
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/zq88297/skillsManage/master/scripts/setup.sh)
+```
+
+**Windows PowerShell:**
+```powershell
+irm https://raw.githubusercontent.com/zq88297/skillsManage/master/scripts/setup.ps1 | iex; Install-Skills
+```
+
+指定项目路径：
+```powershell
+# PowerShell
+irm ... | iex; Install-Skills -TargetPath "F:\MyProject"
+
+# Bash
+bash <(curl -fsSL .../setup.sh) --target /path/to/project
+```
+
+只安装部分技能：
+```powershell
+# PowerShell
+irm ... | iex; Install-Skills -TargetPath "F:\MyProject" -Skills "gsap-core,gsap-timeline"
+
+# Bash
+bash <(curl -fsSL .../setup.sh) --skills gsap-core,gsap-timeline
+```
+
+### 手动安装
+
 ```powershell
 # 1. 克隆
-git clone <your-remote> skills-manage
+git clone https://github.com/zq88297/skillsManage.git skills-manage
 cd skills-manage
 
 # 2. 安装全部技能到项目
@@ -105,7 +140,7 @@ cd skills-manage
 ```
 skillsManage/
 ├── skills/                # 20 个技能目录（400+ 文件）
-├── scripts/               # install.ps1/sh, sync.ps1, validate.ps1, new-skill, export-cursor
+├── scripts/               # setup.ps1/sh (一键安装), install, sync, validate, new-skill, export-cursor
 ├── shared/                # hooks 模板 + 脚手架模板
 ├── adapters/              # Cursor / Cline / Copilot 适配器
 ├── skill-catalog.yaml     # 完整技能清单
