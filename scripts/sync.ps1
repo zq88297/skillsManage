@@ -1,17 +1,23 @@
 <#
 .SYNOPSIS
-    Synchronize skills between the repository and a target project.
+    Synchronize skills between the repository and a target project or global directory.
 
 .DESCRIPTION
-    In Pull mode (default), compares skills in the target project against
+    In Pull mode (default), compares skills in the target against
     the canonical versions in this repo. Shows what's new, modified,
     removed, or identical. Backs up existing files before overwriting.
 
-    In Push mode, copies changes from a target project back to this repo
+    In Push mode, copies changes from a target back to this repo
     (useful when refining a skill in the field).
 
+    Use -Scope global to sync with ~/.claude/skills/ instead of a project.
+
 .PARAMETER TargetPath
-    Path to the target project root.
+    Path to the target project root. Not needed when -Scope global.
+
+.PARAMETER Scope
+    "project" (default): sync with a specific project's .claude/skills/.
+    "global": sync with ~/.claude/skills/.
 
 .PARAMETER Mode
     "Pull" (default): update target from repo.
@@ -24,17 +30,25 @@
     Show what would change without actually changing anything.
 
 .EXAMPLE
-    .\sync.ps1 -TargetPath F:\MyProject
-    Shows diff and prompts before applying.
+    .\sync.ps1
+    Sync global ~/.claude/skills/ with repo (default).
 
 .EXAMPLE
-    .\sync.ps1 -TargetPath F:\MyProject -Mode Push -DryRun
-    Shows what would be pushed back to the repo.
+    .\sync.ps1 -Scope project -TargetPath F:\MyProject
+    Sync a specific project.
+
+.EXAMPLE
+    .\sync.ps1 -Mode Push -DryRun
+    Preview what would be pushed from global to repo.
 #>
 
 param(
-    [Parameter(Mandatory = $true)]
-    [string]$TargetPath,
+    [Parameter(Mandatory = $false)]
+    [string]$TargetPath = "",
+
+    [Parameter(Mandatory = $false)]
+    [ValidateSet("project", "global")]
+    [string]$Scope = "global",
 
     [Parameter(Mandatory = $false)]
     [ValidateSet("Pull", "Push")]
@@ -50,13 +64,26 @@ param(
 $ErrorActionPreference = "Stop"
 $RepoRoot = Split-Path -Parent (Split-Path -Parent $PSCommandPath)
 $RepoSkillsDir = Join-Path $RepoRoot "skills"
+$GlobalSkillsDir = Join-Path $env:USERPROFILE ".claude\skills"
 
-if (-not (Test-Path $TargetPath)) {
-    Write-Error "Target path does not exist: $TargetPath"
-    exit 1
+# Resolve target directory
+if ($Scope -eq "global") {
+    $TargetSkillsDir = $GlobalSkillsDir
+    if (-not (Test-Path $TargetSkillsDir)) {
+        Write-Error "Global skills directory does not exist: $TargetSkillsDir"
+        exit 1
+    }
+} else {
+    if ([string]::IsNullOrEmpty($TargetPath)) {
+        $TargetPath = (Get-Location).Path
+    }
+    if (-not (Test-Path $TargetPath)) {
+        Write-Error "Target path does not exist: $TargetPath"
+        exit 1
+    }
+    $TargetPath = (Resolve-Path $TargetPath).Path
+    $TargetSkillsDir = Join-Path $TargetPath ".claude\skills"
 }
-$TargetPath = (Resolve-Path $TargetPath).Path
-$TargetSkillsDir = Join-Path $TargetPath ".claude\skills"
 
 # --- Compute file hash ---
 function Get-FileHashSafe {

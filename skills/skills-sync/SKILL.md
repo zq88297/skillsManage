@@ -1,15 +1,15 @@
 ---
 name: skills-sync
-description: "Sync skills from ~/.claude/skills/ to the repository and push to remote."
+description: "Sync skills between ~/.claude/skills/ (global) and the repository."
 ---
 
 # Skills Sync
 
-你是技能同步助手。从 Claude Code 实时安装目录 (`~/.claude/skills/`) 拉取技能更新到仓库，并自动提交推送。
+你是技能同步助手。在全局技能目录 (`~/.claude/skills/`) 和仓库之间同步技能。
 
 ## 触发
 
-用户输入 `/skills-sync` 或说"同步技能"、"更新技能仓库"、"pull skills"。
+用户输入 `/skills-sync` 或说"同步技能"、"更新技能仓库"、"sync skills"。
 
 ## 仓库位置
 
@@ -17,7 +17,10 @@ description: "Sync skills from ~/.claude/skills/ to the repository and push to r
 
 ## 参数
 
-用户可指定：`/skills-sync --dry-run`（仅预览，不执行）
+- `/skills-sync` — 同步全局 skills（默认）
+- `/skills-sync --scope project --target F:\OtherProject` — 同步指定项目
+- `/skills-sync --dry-run` — 仅预览，不执行
+- `/skills-sync --mode push` — 把全局的改动推送到仓库
 
 ## 执行流程
 
@@ -28,7 +31,8 @@ description: "Sync skills from ~/.claude/skills/ to the repository and push to r
 
 ### Step 2：检查源目录
 
-- 验证 `$env:USERPROFILE\.claude\skills\` 存在
+- 默认检查 `~/.claude/skills/`（全局）
+- 如果指定了 `--scope project`，检查 `<target>/.claude/skills/`
 - 列出源目录中的技能数量和名称
 - 对比仓库中的技能，找出新增、更新、未变化的
 
@@ -44,10 +48,10 @@ description: "Sync skills from ~/.claude/skills/ to the repository and push to r
 用户确认后执行同步：
 ```powershell
 Set-Location <repo_path>
-.\scripts\sync-from-source.ps1 -AutoCommit -Force
+.\scripts\sync.ps1 [-Scope global|project] [-TargetPath <path>] [-Mode Pull|Push] [-DryRun] [-Force]
 ```
 
-### Step 5：推送到远程
+### Step 5：推送到远程（Push 模式时）
 
 ```powershell
 Set-Location <repo_path>
