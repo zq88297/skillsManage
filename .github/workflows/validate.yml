@@ -1,0 +1,79 @@
+name: Validate Skills
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  schedule:
+    # Daily at 10:00 UTC — catch upstream skill updates
+    - cron: '0 10 * * *'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check skill structure
+        run: |
+          echo "=== Skills Inventory ==="
+          echo "Total skill directories: $(ls -d skills/*/ | wc -l)"
+          echo ""
+          echo "=== Checking SKILL.md files ==="
+          missing=0
+          for dir in skills/*/; do
+            name=$(basename "$dir")
+            if [ ! -f "$dir/SKILL.md" ]; then
+              echo "ERROR: $name missing SKILL.md"
+              missing=$((missing + 1))
+            fi
+          done
+          if [ $missing -gt 0 ]; then
+            echo "FAIL: $missing skills missing SKILL.md"
+            exit 1
+          fi
+          echo "PASS: All skills have SKILL.md"
+
+      - name: Check YAML frontmatter
+        run: |
+          echo "=== Checking YAML Frontmatter ==="
+          errors=0
+          for skill_file in skills/*/SKILL.md; do
+            name=$(basename $(dirname "$skill_file"))
+            if ! head -1 "$skill_file" | grep -q '^---$'; then
+              echo "FAIL: $name — missing YAML frontmatter (no opening ---)"
+              errors=$((errors + 1))
+              continue
+            fi
+            # Extract name field between --- markers
+            yaml_name=$(sed -n '/^---$/,/^---$/p' "$skill_file" | grep '^name:' | head -1 | sed 's/name:\s*//' | tr -d '"')
+            if [ -z "$yaml_name" ]; then
+              echo "FAIL: $name — no 'name:' in frontmatter"
+              errors=$((errors + 1))
+            elif [ "$yaml_name" != "$name" ]; then
+              echo "WARN: $name — frontmatter name '$yaml_name' doesn't match directory"
+            else
+              echo "PASS: $name"
+            fi
+          done
+          if [ $errors -gt 0 ]; then
+            echo "FAIL: $errors validation errors"
+            exit 1
+          fi
+
+      - name: Generate catalog summary
+        run: |
+          echo "=== Skill Catalog Summary ==="
+          echo ""
+          echo "| # | Skill | Files | Size |"
+          echo "|---|---|---|---|"
+          for dir in skills/*/; do
+            name=$(basename "$dir")
+            files=$(find "$dir" -type f | wc -l)
+            size=$(du -sh "$dir" | cut -f1)
+            echo "| | $name | $files | $size |"
+          done
+          echo ""
+          echo "Total: $(ls -d skills/*/ | wc -l) skills, $(find skills/ -type f | wc -l) files"
