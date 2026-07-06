@@ -1,4 +1,4 @@
-# skill-catalog.yaml
+﻿# skill-catalog.yaml
 # Complete manifest of all 20 managed Claude Code skills.
 # Used by install/sync/validate scripts for dependency resolution and metadata.
 
@@ -70,6 +70,39 @@ skills:
       - skills-install
       - skills-status
     tags: [skills-management, sync, install, maintenance]
+
+  skills-sync:
+    version: "1.0.0"
+    display_name: "Skills Sync Command"
+    layer: meta
+    description: >
+      Sync skills from ~/.claude/skills/ to the repository and push to remote.
+      Thin entry point — delegates full workflow to skills-manager.
+    dependencies: []
+    commands: []
+    tags: [skills-management, sync, entry-point]
+
+  skills-install:
+    version: "1.0.0"
+    display_name: "Skills Install Command"
+    layer: meta
+    description: >
+      Install skills from the repository to the current project.
+      Thin entry point — delegates full workflow to skills-manager.
+    dependencies: []
+    commands: []
+    tags: [skills-management, install, entry-point]
+
+  skills-status:
+    version: "1.0.0"
+    display_name: "Skills Status Command"
+    layer: meta
+    description: >
+      Show skill ecosystem health — repo, source, and project installation status.
+      Thin entry point — delegates full workflow to skills-manager.
+    dependencies: []
+    commands: []
+    tags: [skills-management, status, entry-point]
 
   # ==================================================================
   # Design Layer — visual art, UI design, frontend polish
@@ -311,3 +344,4 @@ dependency_order:
   - [docx, pdf, pptx, xlsx]
   - [gsap-core, gsap-frameworks, gsap-performance, gsap-plugins, gsap-react, gsap-scrolltrigger, gsap-timeline, gsap-utils]
   - [project-workflow, task-orchestrator]
+

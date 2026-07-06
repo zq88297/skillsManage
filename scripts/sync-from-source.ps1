@@ -91,6 +91,18 @@ $removedSkills = @()
 $modifiedSkills = @()
 $identicalSkills = @()
 
+function Get-SkillHash {
+    param([string]$Path)
+    $files = Get-ChildItem -Recurse -File $Path -ErrorAction SilentlyContinue | Sort-Object FullName
+    $combined = ($files | ForEach-Object {
+        "$($_.FullName.Substring($Path.Length)):$(Get-FileHash -Path $_.FullName -Algorithm SHA256).Hash"
+    }) -join "`n"
+    $hash = [System.Security.Cryptography.SHA256]::Create().ComputeHash(
+        [System.Text.Encoding]::UTF8.GetBytes($combined)
+    )
+    return [BitConverter]::ToString($hash) -replace '-', ''
+}
+
 foreach ($name in $allNames) {
     $inSource = $sourceSkills.ContainsKey($name)
     $inRepo = $repoSkills.ContainsKey($name)
@@ -113,18 +125,6 @@ foreach ($name in $allNames) {
             $identicalSkills += $name
         }
     }
-}
-
-function Get-SkillHash {
-    param([string]$Path)
-    $files = Get-ChildItem -Recurse -File $Path -ErrorAction SilentlyContinue | Sort-Object FullName
-    $combined = ($files | ForEach-Object {
-        "$($_.FullName.Substring($Path.Length)):$(Get-FileHash -Path $_.FullName -Algorithm SHA256).Hash"
-    }) -join "`n"
-    $hash = [System.Security.Cryptography.SHA256]::Create().ComputeHash(
-        [System.Text.Encoding]::UTF8.GetBytes($combined)
-    )
-    return [BitConverter]::ToString($hash) -replace '-', ''
 }
 
 # --- Report ---
