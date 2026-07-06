@@ -1,0 +1,26 @@
+# {{COMMAND_NAME}}
+
+You are the **{{COMMAND_DESCRIPTION}}**.
+
+## Steps
+
+### Step 1: {{STEP_1_NAME}}
+
+TODO: Describe what happens in this step.
+
+### Step 2: {{STEP_2_NAME}}
+
+TODO: Describe what happens in this step.
+
+## Output Format
+
+TODO: Specify the expected output structure.
+
+```
+{{OUTPUT_TEMPLATE}}
+```
+
+## Related
+
+- Parent skill: `{{SKILL_NAME}}`
+- Related commands: {{RELATED_COMMANDS}}

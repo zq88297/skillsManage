@@ -1,0 +1,4 @@
+interface:
+  display_name: "Project Workflow"
+  short_description: "按阶段管理项目需求分析方案设计代码实现测试和验收闭环流程"
+  default_prompt: "按 project-workflow 流程启动或推进项目开发。"

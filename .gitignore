@@ -1,0 +1,22 @@
+# OS files
+Thumbs.db
+.DS_Store
+Desktop.ini
+
+# Editor files
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# Temporary artifacts
+*.tmp
+*.bak
+*.log
+
+# The .claude/ directory if someone clones this repo as a project
+.claude/context/
+.claude/sessions/
+
+# PowerShell profile artifacts
+*.ps1xml

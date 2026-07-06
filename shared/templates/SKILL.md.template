@@ -1,0 +1,48 @@
+---
+name: {{SKILL_NAME}}
+description: "{{ONE_LINE_DESCRIPTION}}"
+---
+
+# {{DISPLAY_NAME}}
+
+TODO: Describe what this skill does and the key behaviors the AI should follow.
+
+## Overview
+
+TODO: High-level description of the skill's purpose and workflow. What problem
+does it solve? When should the AI invoke it?
+
+## Rules
+
+TODO: Define the rules and behaviors. Use imperative form. Explain WHY, not just WHAT.
+
+### Rule 1: {{RULE_NAME}}
+
+{{RULE_DESCRIPTION}}
+
+## Commands
+
+TODO: List the slash commands this skill provides.
+
+| Command | Purpose |
+|---------|---------|
+| (none yet) | |
+
+## Dependencies
+
+{{#if DEPENDENCIES}}
+This skill depends on:
+{{#each DEPENDENCIES}}
+- {{this}}
+{{/each}}
+{{else}}
+This skill has no dependencies.
+{{/if}}
+
+## Reference
+
+TODO: Link to relevant documentation, existing workflows, or related skills.
+
+---
+
+*Created: {{DATE}} | Version: 0.1.0*

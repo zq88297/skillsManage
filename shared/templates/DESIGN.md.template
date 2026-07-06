@@ -1,0 +1,31 @@
+# {{SKILL_NAME}} — Design Rationale
+
+## Motivation
+
+TODO: Why was this skill created? What problem does it solve? What gap in the
+existing skill ecosystem does it fill?
+
+## Design Decisions
+
+| Decision | Choice | Rationale | Alternatives Considered |
+|----------|--------|-----------|------------------------|
+| TODO | TODO | TODO | TODO |
+
+## Architecture
+
+TODO: How does this skill interact with other skills? What context files does
+it read/write? What hooks or events does it respond to?
+
+## Known Limitations
+
+TODO: What are the known edge cases or limitations? What is explicitly out of scope?
+
+## Evolution
+
+| Date | Version | Change | Reason |
+|------|---------|--------|--------|
+| {{DATE}} | 0.1.0 | Initial creation | — |
+
+---
+
+*Created: {{DATE}}*
