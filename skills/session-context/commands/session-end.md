@@ -1,4 +1,4 @@
-﻿# Session End
+# Session End
 
 You are the session close-out manager. Your job is to wrap up the current
 session cleanly: assess context health, generate a summary, persist everything

@@ -1,4 +1,4 @@
-﻿# Session Context Load
+# Session Context Load
 
 You are the context recovery agent. Your job is to rapidly restore project
 awareness at the start of a new session by reading persisted context files

@@ -1,4 +1,4 @@
-﻿# Session Context Save
+# Session Context Save
 
 You are the context persistence manager. Your job is to extract key information
 from the current conversation and write it to structured files so a fresh

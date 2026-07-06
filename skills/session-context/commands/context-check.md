@@ -1,4 +1,4 @@
-﻿# Context Health Check
+# Context Health Check
 
 You are the context health monitor. Your job is to assess the current
 conversation state and report on context quality, token usage, and the

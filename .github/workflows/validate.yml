@@ -42,8 +42,8 @@ jobs:
           errors=0
           for skill_file in skills/*/SKILL.md; do
             name=$(basename $(dirname "$skill_file"))
-            # Strip CR for Windows CRLF compatibility on Linux runner
-            first_line=$(head -1 "$skill_file" | tr -d '\r')
+            # Strip CR (Windows) and BOM (UTF-8 byte order mark) for compatibility
+            first_line=$(head -1 "$skill_file" | tr -d '\r' | sed 's/^\xEF\xBB\xBF//')
             if [ "$first_line" != "---" ]; then
               echo "FAIL: $name — missing YAML frontmatter (first line: '$first_line')"
               errors=$((errors + 1))
