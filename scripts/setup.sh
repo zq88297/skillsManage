@@ -4,10 +4,19 @@
 # Usage:
 #   bash <(curl -fsSL https://raw.githubusercontent.com/zq88297/skillsManage/master/scripts/setup.sh)
 #
-# With options:
-#   bash <(curl -fsSL ...) --target /path/to/project
-#   bash <(curl -fsSL ...) --skills gsap-core,gsap-timeline
-#   bash <(curl -fsSL ...) --target /path/to/project --skills project-workflow
+# Options:
+#   --scope project|global   Install scope (default: project)
+#   --skills skill1,skill2   Only install specific skills
+#
+# Examples:
+#   # Install to current project
+#   bash <(curl -fsSL .../setup.sh)
+#
+#   # Install globally (all projects)
+#   bash <(curl -fsSL .../setup.sh) --scope global
+#
+#   # Install specific skills to current project
+#   bash <(curl -fsSL .../setup.sh) --skills gsap-core,gsap-timeline
 #
 set -euo pipefail
 
@@ -23,13 +32,13 @@ cleanup() {
 trap cleanup EXIT
 
 # Parse arguments
-TARGET_PATH=""
+SCOPE="project"
 SELECTED_SKILLS=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --target)
-            TARGET_PATH="$2"
+        --scope)
+            SCOPE="$2"
             shift 2
             ;;
         --skills)
@@ -37,14 +46,15 @@ while [[ $# -gt 0 ]]; do
             shift 2
             ;;
         --help|-h)
-            echo "Usage: setup.sh [--target <path>] [--skills <skill1,skill2>]"
+            echo "Usage: setup.sh [--scope project|global] [--skills <skill1,skill2>]"
             echo ""
-            echo "  --target    Install to this project path (default: current directory)"
-            echo "  --skills    Comma-separated skill names (default: all)"
+            echo "Options:"
+            echo "  --scope    Install scope: project (default) or global"
+            echo "  --skills   Comma-separated skill names (default: all)"
             echo ""
             echo "Examples:"
             echo "  bash <(curl -fsSL .../setup.sh)"
-            echo "  bash <(curl -fsSL .../setup.sh) --target ~/my-project"
+            echo "  bash <(curl -fsSL .../setup.sh) --scope global"
             echo "  bash <(curl -fsSL .../setup.sh) --skills gsap-core,gsap-timeline"
             exit 0
             ;;
@@ -55,17 +65,23 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Default target: current directory
-if [[ -z "$TARGET_PATH" ]]; then
-    TARGET_PATH="$(pwd)"
-fi
-
-if [[ ! -d "$TARGET_PATH" ]]; then
-    echo "Error: Target path does not exist: $TARGET_PATH"
+# Validate scope
+if [[ "$SCOPE" != "project" && "$SCOPE" != "global" ]]; then
+    echo "Error: --scope must be 'project' or 'global'"
     exit 1
 fi
 
+# Determine target path
+GLOBAL_DIR="$HOME/.claude/skills"
+if [[ "$SCOPE" == "global" ]]; then
+    TARGET_PATH="$GLOBAL_DIR"
+else
+    TARGET_PATH="$(pwd)"
+fi
+
 echo "=== Claude Code Skills Installer ==="
+echo "Scope:  $SCOPE"
+echo "Target: $TARGET_PATH"
 echo ""
 
 # Check dependencies
@@ -79,28 +95,24 @@ echo "Cloning skills repository..."
 TMP_DIR=$(mktemp -d)
 git clone --depth 1 --branch "$BRANCH" "$REPO_URL" "$TMP_DIR/skillsManage" 2>/dev/null
 
-# Build install command
-INSTALL_ARGS="-TargetPath $TARGET_PATH"
-if [[ -n "$SELECTED_SKILLS" ]]; then
-    # Convert comma-separated to PowerShell array format
-    IFS=',' read -ra SKILLS_ARRAY <<< "$SELECTED_SKILLS"
-    PSKILLS=$(printf "'%s'," "${SKILLS_ARRAY[@]}" | sed 's/,$//')
-    INSTALL_ARGS="$INSTALL_ARGS -Skills $PSKILLS"
-fi
-
-# Detect shell and run installer
 SCRIPTS_DIR="$TMP_DIR/skillsManage/scripts"
 
-if [[ -f "$SCRIPTS_DIR/install.sh" ]]; then
-    # Unix: use bash installer
+if [[ "$SCOPE" == "global" ]]; then
+    # Global: install to temp project, then copy skills to global dir
+    GLOBAL_ARGS="$TMP_DIR"
+    if [[ -n "$SELECTED_SKILLS" ]]; then
+        GLOBAL_ARGS="$GLOBAL_ARGS --skills $SELECTED_SKILLS"
+    fi
+    bash "$SCRIPTS_DIR/install.sh" $GLOBAL_ARGS
+    mkdir -p "$GLOBAL_DIR"
+    cp -r "$TMP_DIR/.claude/skills/"* "$GLOBAL_DIR/" 2>/dev/null || true
+else
+    # Project: install directly to target project
     BASH_ARGS="$TARGET_PATH"
     if [[ -n "$SELECTED_SKILLS" ]]; then
         BASH_ARGS="$BASH_ARGS --skills $SELECTED_SKILLS"
     fi
     bash "$SCRIPTS_DIR/install.sh" $BASH_ARGS
-else
-    echo "Error: install.sh not found in repository"
-    exit 1
 fi
 
 echo ""

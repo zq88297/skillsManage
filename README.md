@@ -18,34 +18,36 @@
 
 ### 一键安装（推荐）
 
-在你的项目目录下运行一条命令即可：
+在项目目录下运行一条命令，技能自动安装到 `.claude/skills/`：
 
-**macOS / Linux:**
+**macOS / Linux：**
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/zq88297/skillsManage/master/scripts/setup.sh)
 ```
 
-**Windows PowerShell:**
+**Windows PowerShell：**
 ```powershell
 irm https://raw.githubusercontent.com/zq88297/skillsManage/master/scripts/setup.ps1 | iex; Install-Skills
 ```
 
-指定项目路径：
-```powershell
-# PowerShell
-irm ... | iex; Install-Skills -TargetPath "F:\MyProject"
+### 安装到全局（所有项目可用）
 
-# Bash
-bash <(curl -fsSL .../setup.sh) --target /path/to/project
+```bash
+# macOS / Linux
+bash <(curl -fsSL .../setup.sh) --scope global
+
+# Windows PowerShell
+irm ... | iex; Install-Skills -Scope global
 ```
 
-只安装部分技能：
-```powershell
-# PowerShell
-irm ... | iex; Install-Skills -TargetPath "F:\MyProject" -Skills "gsap-core,gsap-timeline"
+### 只安装部分技能
 
-# Bash
+```bash
+# macOS / Linux
 bash <(curl -fsSL .../setup.sh) --skills gsap-core,gsap-timeline
+
+# Windows PowerShell
+irm ... | iex; Install-Skills -Skills "gsap-core,gsap-timeline"
 ```
 
 ### 手动安装

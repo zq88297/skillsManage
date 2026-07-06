@@ -4,41 +4,47 @@
 
 .DESCRIPTION
     Downloads and installs skills from the central repository.
-    Run from any project directory.
+    Supports project-level and global installation.
 
 .EXAMPLE
-    # Install all skills to current directory
-    irm https://raw.githubusercontent.com/zq88297/skillsManage/master/scripts/setup.ps1 | iex
-
-    # Then call the function
-    Install-Skills
+    # Install to current project
+    irm https://raw.githubusercontent.com/zq88297/skillsManage/master/scripts/setup.ps1 | iex; Install-Skills
 
 .EXAMPLE
-    # Install to specific path with selected skills
-    Install-Skills -TargetPath "F:\MyProject" -Skills "gsap-core,gsap-timeline"
+    # Install globally (all projects)
+    irm ... | iex; Install-Skills -Scope global
 
 .EXAMPLE
-    # One-liner from any project
-    Install-Skills -TargetPath "F:\MyProject"
+    # Install specific skills
+    irm ... | iex; Install-Skills -Skills "gsap-core,gsap-timeline"
+
+.EXAMPLE
+    # Install to specific project
+    irm ... | iex; Install-Skills -Scope project -TargetPath "F:\MyProject"
 #>
 function Install-Skills {
     param(
-        [string]$TargetPath = (Get-Location).Path,
+        [ValidateSet("project", "global")]
+        [string]$Scope = "project",
+        [string]$TargetPath = "",
         [string[]]$Skills = @()
     )
 
     $RepoUrl = "https://github.com/zq88297/skillsManage.git"
     $Branch = "master"
+    $GlobalDir = Join-Path $env:USERPROFILE ".claude\skills"
+
+    # Determine target path
+    if ($Scope -eq "global") {
+        $TargetPath = $GlobalDir
+    } elseif ([string]::IsNullOrEmpty($TargetPath)) {
+        $TargetPath = (Get-Location).Path
+    }
 
     Write-Host "=== Claude Code Skills Installer ===" -ForegroundColor Cyan
+    Write-Host "Scope:  $Scope" -ForegroundColor Yellow
+    Write-Host "Target: $TargetPath" -ForegroundColor Yellow
     Write-Host ""
-
-    # Validate target
-    if (-not (Test-Path $TargetPath)) {
-        Write-Error "Target path does not exist: $TargetPath"
-        return
-    }
-    $TargetPath = (Resolve-Path $TargetPath).Path
 
     # Check git
     if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
@@ -62,16 +68,26 @@ function Install-Skills {
             return
         }
 
-        # Build arguments
-        $installArgs = @{
-            TargetPath = $TargetPath
+        if ($Scope -eq "global") {
+            # Global: install to temp, then copy skills to global dir
+            $globalArgs = @{ TargetPath = $tmpDir }
+            if ($Skills.Count -gt 0) {
+                $globalArgs['Skills'] = $Skills
+            }
+            & $installScript @globalArgs
+            $installedSkills = Join-Path $tmpDir ".claude\skills"
+            if (Test-Path $installedSkills) {
+                New-Item -ItemType Directory -Force -Path $GlobalDir | Out-Null
+                Copy-Item -Recurse -Force "$installedSkills\*" $GlobalDir
+            }
+        } else {
+            # Project: install directly to target
+            $installArgs = @{ TargetPath = $TargetPath }
+            if ($Skills.Count -gt 0) {
+                $installArgs['Skills'] = $Skills
+            }
+            & $installScript @installArgs
         }
-        if ($Skills.Count -gt 0) {
-            $installArgs['Skills'] = $Skills
-        }
-
-        # Run installer
-        & $installScript @installArgs
 
         Write-Host ""
         Write-Host "Done! Restart Claude Code to load the new skills." -ForegroundColor Green
@@ -84,12 +100,11 @@ function Install-Skills {
     }
 }
 
-# Auto-execute when invoked via irm | iex
-# If not being piped, show usage
+# Show usage when loaded
 if ($MyInvocation.InvocationName -ne '&') {
-    Write-Host "Skills installer loaded. Run:" -ForegroundColor Cyan
-    Write-Host "  Install-Skills" -ForegroundColor White
-    Write-Host "  Install-Skills -TargetPath 'F:\MyProject'" -ForegroundColor White
-    Write-Host "  Install-Skills -TargetPath 'F:\MyProject' -Skills 'gsap-core,gsap-timeline'" -ForegroundColor White
+    Write-Host "Skills installer loaded. Usage:" -ForegroundColor Cyan
+    Write-Host "  Install-Skills                                    # Install to current project" -ForegroundColor White
+    Write-Host "  Install-Skills -Scope global                      # Install globally" -ForegroundColor White
+    Write-Host "  Install-Skills -Skills 'gsap-core,gsap-timeline'  # Install specific skills" -ForegroundColor White
     Write-Host ""
 }
