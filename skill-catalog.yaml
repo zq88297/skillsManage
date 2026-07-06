@@ -1,19 +1,22 @@
 # skill-catalog.yaml
-# Single source of truth for all managed skills.
+# Complete manifest of all 20 managed Claude Code skills.
 # Used by install/sync/validate scripts for dependency resolution and metadata.
 
-catalog_version: "1.0"
+catalog_version: "2.0"
 last_updated: "2026-07-06"
 
 skills:
+  # ==================================================================
+  # Foundation Layer — auto-load, context, session persistence
+  # ==================================================================
   session-context:
     version: "2.1.0"
     display_name: "Session Context Manager"
     layer: foundation
     description: >
-      Auto-loads project context, tracks tasks/decisions/pitfalls,
-      cross-project task dispatch, branch isolation, hooks management.
-      MUST trigger on EVERY conversation in a dev project.
+      MUST trigger on EVERY conversation in a dev project. Auto-loads context
+      (task progress, decisions, pitfalls), cross-project task dispatch,
+      branch isolation, hooks management.
     dependencies: []
     commands:
       - context-check
@@ -22,59 +25,273 @@ skills:
       - session-load
       - session-save
       - task-send
-    triggers_keywords:
-      - 修改, 排查, debug, fix, change, investigate
-      - generate, create, how to, 帮我, 实现, 开发
-      - 优化, 重构, 测试, 部署, 编译, 运行
-      - 报错, 失败, 问题, 保存上下文, 加载上下文, 继续工作
-    tags:
-      - context-management
-      - session-persistence
-      - auto-initialization
+    tags: [context-management, session-persistence, auto-initialization]
 
+  # ==================================================================
+  # Meta Layer — skill creation and coding guidelines
+  # ==================================================================
+  skill-creator:
+    version: "1.0.0"
+    display_name: "Skill Creator"
+    layer: meta
+    description: >
+      Create new skills, modify and improve existing skills, and measure
+      skill performance. Use when users want to create a skill from scratch,
+      edit or optimize an existing skill, run evals, or benchmark performance.
+    dependencies: []
+    commands: []
+    tags: [skill-creation, evaluation, optimization]
+
+  karpathy-guidelines:
+    version: "1.0.0"
+    display_name: "Karpathy Coding Guidelines"
+    layer: meta
+    description: >
+      Behavioral guidelines to reduce common LLM coding mistakes. Use when
+      writing, reviewing, or refactoring code to avoid overcomplication,
+      make surgical changes, surface assumptions, and define verifiable
+      success criteria.
+    dependencies: []
+    commands: []
+    tags: [coding-guidelines, best-practices, code-review]
+
+  # ==================================================================
+  # Design Layer — visual art, UI design, frontend polish
+  # ==================================================================
+  canvas-design:
+    version: "1.0.0"
+    display_name: "Canvas Design"
+    layer: design
+    description: >
+      Create beautiful visual art in .png and .pdf documents using design
+      philosophy. Use when the user asks to create a poster, piece of art,
+      design, or other static piece. Create original visual designs.
+    dependencies: []
+    commands: []
+    tags: [visual-art, poster, design, png, pdf]
+
+  frontend-design:
+    version: "1.0.0"
+    display_name: "Frontend Design"
+    layer: design
+    description: >
+      Create distinctive, production-grade frontend interfaces with high
+      design quality. Use when the user asks to build web components, pages,
+      artifacts, posters, or applications (websites, landing pages, dashboards,
+      React components, HTML/CSS layouts, or styling/beautifying any web UI).
+    dependencies: []
+    commands: []
+    tags: [frontend, ui, design, react, html, css]
+
+  impeccable:
+    version: "3.9.1"
+    display_name: "Impeccable UI Design"
+    layer: design
+    description: >
+      Use when the user wants to design, redesign, shape, critique, audit,
+      polish, clarify, distill, harden, optimize, adapt, animate, colorize,
+      extract, or otherwise improve a frontend interface. Covers UX review,
+      visual hierarchy, accessibility, performance, theming, anti-patterns,
+      typography, spacing, layout, color, motion, micro-interactions, and more.
+    dependencies: []
+    commands: []
+    tags: [ui-design, ux-review, accessibility, theming, polish, critique]
+
+  # ==================================================================
+  # Document Layer — Word, PDF, PowerPoint, Excel
+  # ==================================================================
+  docx:
+    version: "1.0.0"
+    display_name: "Word Documents"
+    layer: documents
+    description: >
+      Use whenever the user wants to create, read, edit, or manipulate Word
+      documents (.docx). Triggers on: 'Word doc', '.docx', reports, memos,
+      letters, templates. Handles tracked changes, comments, formatting,
+      images, and content extraction.
+    dependencies: []
+    commands: []
+    tags: [docx, word, documents, reports, templates]
+
+  pdf:
+    version: "1.0.0"
+    display_name: "PDF Tools"
+    layer: documents
+    description: >
+      Use whenever the user wants to do anything with PDF files: reading,
+      extracting text/tables, merging, splitting, rotating, watermarks,
+      creating new PDFs, filling forms, encrypting/decrypting, extracting
+      images, and OCR on scanned PDFs.
+    dependencies: []
+    commands: []
+    tags: [pdf, documents, forms, ocr]
+
+  pptx:
+    version: "1.0.0"
+    display_name: "PowerPoint Presentations"
+    layer: documents
+    description: >
+      Use any time a .pptx file is involved: creating slide decks, pitch decks,
+      presentations; reading, parsing, extracting text; editing, modifying,
+      updating; combining or splitting slides; templates, layouts, speaker notes.
+    dependencies: []
+    commands: []
+    tags: [pptx, powerpoint, presentations, slides, decks]
+
+  xlsx:
+    version: "1.0.0"
+    display_name: "Excel Spreadsheets"
+    layer: documents
+    description: >
+      Use any time a spreadsheet file is the primary input or output: .xlsx,
+      .xlsm, .csv, .tsv. Open, read, edit, fix, compute formulas, format,
+      chart, clean messy data, create from scratch, convert between formats.
+    dependencies: []
+    commands: []
+    tags: [xlsx, excel, spreadsheets, csv, data, charts]
+
+  # ==================================================================
+  # Animation Layer — GSAP ecosystem
+  # ==================================================================
+  gsap-core:
+    version: "1.0.0"
+    display_name: "GSAP Core API"
+    layer: animation
+    description: >
+      Official GSAP skill for the core API — gsap.to(), from(), fromTo(),
+      easing, duration, stagger, defaults, gsap.matchMedia(). Use for JS
+      animation, React/Vue/vanilla, GSAP tweens, easing, basic animation,
+      responsive or reduced-motion animation, animating DOM/SVG with GSAP.
+    dependencies: []
+    commands: []
+    tags: [gsap, animation, javascript, tween, easing]
+
+  gsap-frameworks:
+    version: "1.0.0"
+    display_name: "GSAP Frameworks"
+    layer: animation
+    description: >
+      Official GSAP skill for Vue, Svelte, and other non-React frameworks —
+      lifecycle, scoping selectors, cleanup on unmount. Use for animation
+      in Vue, Nuxt, Svelte, SvelteKit. For React use gsap-react.
+    dependencies: []
+    commands: []
+    tags: [gsap, vue, svelte, nuxt, animation]
+
+  gsap-performance:
+    version: "1.0.0"
+    display_name: "GSAP Performance"
+    layer: animation
+    description: >
+      Official GSAP skill for performance — prefer transforms, avoid layout
+      thrashing, will-change, batching. Use when optimizing GSAP animations,
+      reducing jank, or when asking about animation performance, FPS, smooth 60fps.
+    dependencies: []
+    commands: []
+    tags: [gsap, performance, optimization, fps]
+
+  gsap-plugins:
+    version: "1.0.0"
+    display_name: "GSAP Plugins"
+    layer: animation
+    description: >
+      Official GSAP skill for plugins — registration, ScrollToPlugin,
+      ScrollSmoother, Flip, Draggable, Inertia, Observer, SplitText,
+      ScrambleText, SVG and physics plugins, CustomEase, EasePack,
+      CustomWiggle, CustomBounce, GSDevTools.
+    dependencies: []
+    commands: []
+    tags: [gsap, plugins, scroll, svg, draggable]
+
+  gsap-react:
+    version: "1.0.0"
+    display_name: "GSAP React"
+    layer: animation
+    description: >
+      Official GSAP skill for React — useGSAP hook, refs, gsap.context(),
+      cleanup. Use for animation in React or Next.js, or when asking about
+      GSAP with React, useGSAP, or cleanup on unmount.
+    dependencies: []
+    commands: []
+    tags: [gsap, react, nextjs, hooks]
+
+  gsap-scrolltrigger:
+    version: "1.0.0"
+    display_name: "GSAP ScrollTrigger"
+    layer: animation
+    description: >
+      Official GSAP skill for ScrollTrigger — scroll-linked animations,
+      pinning, scrub, triggers. Use for scroll-based animation, parallax,
+      pinned sections, or when asking about ScrollTrigger or scroll animations.
+    dependencies: []
+    commands: []
+    tags: [gsap, scroll, parallax, pinning]
+
+  gsap-timeline:
+    version: "1.0.0"
+    display_name: "GSAP Timeline"
+    layer: animation
+    description: >
+      Official GSAP skill for timelines — gsap.timeline(), position parameter,
+      nesting, playback. Use when sequencing animations, choreographing keyframes,
+      or asking about animation sequencing, timelines, or animation order.
+    dependencies: []
+    commands: []
+    tags: [gsap, timeline, sequencing, choreography]
+
+  gsap-utils:
+    version: "1.0.0"
+    display_name: "GSAP Utilities"
+    layer: animation
+    description: >
+      Official GSAP skill for gsap.utils — clamp, mapRange, normalize,
+      interpolate, random, snap, toArray, wrap, pipe. Use when asking about
+      gsap.utils, clamp, mapRange, random, snap, toArray, wrap, or helper
+      utilities in GSAP.
+    dependencies: []
+    commands: []
+    tags: [gsap, utilities, helpers, math]
+
+  # ==================================================================
+  # Workflow Layer — project lifecycle and task orchestration
+  # ==================================================================
   project-workflow:
     version: "1.3.0"
     display_name: "Project Lifecycle Manager"
     layer: workflow
     description: >
-      5-phase project lifecycle (Requirements -> Design -> Implementation ->
-      Testing -> Acceptance), bug-fix automation, frontend integration.
+      5-phase project lifecycle (Requirements → Design → Implementation →
+      Testing → Acceptance), bug-fix automation, frontend integration.
+      Triggers on: 新项目, 新功能, 新需求, 开发, 项目管理, project workflow.
     dependencies:
       - session-context
     commands:
       - workflow-start
       - workflow-status
       - workflow-review
-    triggers_keywords:
-      - 新项目, 新功能, 新模块, 新需求, 新增, 添加
-      - 做一个, 实现一个, 开发一个, 项目管理, 开发流程
-      - project workflow, requirements, 需求分析, 方案设计, 验收
-      - 帮我做, 帮我写, 帮我开发, 帮我实现, 从头开始, 从零开始
-    tags:
-      - project-management
-      - lifecycle
-      - bug-fix
+    tags: [project-management, lifecycle, bug-fix]
 
   task-orchestrator:
     version: "1.1.0"
     display_name: "Task Orchestrator"
-    layer: orchestration
+    layer: workflow
     description: >
       Parallel task scheduling, dependency analysis, multi-session orchestration.
+      Triggers when multi-step plans can be parallelized across independent sessions.
     dependencies:
       - session-context
     commands:
       - task-plan
       - task-run
-    triggers_keywords:
-      - parallel, 并行, 同时执行, 多任务, 批量, 一起做, 一起改, 分步
-    tags:
-      - task-scheduling
-      - parallelism
-      - orchestration
+    tags: [task-scheduling, parallelism, orchestration]
 
-# Computed dependency graph (for tooling).
-# Install order: layer 0 first, then layer 1, etc.
+# ==================================================================
+# Dependency graph (topological order for installation)
+# Layer 0 (no deps) → Layer 1 (depend on layer 0)
+# ==================================================================
 dependency_order:
-  - [session-context]
+  - [session-context, skill-creator, karpathy-guidelines]
+  - [canvas-design, frontend-design, impeccable]
+  - [docx, pdf, pptx, xlsx]
+  - [gsap-core, gsap-frameworks, gsap-performance, gsap-plugins, gsap-react, gsap-scrolltrigger, gsap-timeline, gsap-utils]
   - [project-workflow, task-orchestrator]

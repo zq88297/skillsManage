@@ -4,8 +4,8 @@
 
 .DESCRIPTION
     Copies skills from the canonical skills/ directory into the target
-    project's .claude/skills/ directory. Resolves transitive dependencies
-    from skill-catalog.yaml. Creates backups of existing files unless -Force.
+    project's .claude/skills/ directory. Resolves transitive dependencies.
+    Creates backups of existing files unless -Force.
 
 .PARAMETER TargetPath
     Path to the target project root (where .claude/ directory lives or will be created).
@@ -21,11 +21,11 @@
 
 .EXAMPLE
     .\install.ps1 -TargetPath F:\MyProject
-    Installs all skills to F:\MyProject\.claude\skills\
+    Installs all 20 skills to F:\MyProject\.claude\skills\
 
 .EXAMPLE
-    .\install.ps1 -TargetPath F:\MyProject -Skills session-context,project-workflow -WithHooks
-    Installs session-context and project-workflow (with resolved dependencies) plus hooks.
+    .\install.ps1 -TargetPath F:\MyProject -Skills project-workflow,gsap-core
+    Installs project-workflow + gsap-core (with resolved dependencies).
 #>
 
 param(
@@ -55,33 +55,75 @@ if (-not (Test-Path $TargetPath)) {
 }
 $TargetPath = (Resolve-Path $TargetPath).Path
 
-# Validate catalog exists
-if (-not (Test-Path $CatalogFile)) {
-    Write-Error "Catalog file not found: $CatalogFile"
-    exit 1
-}
-
 Write-Host "=== Skills Installer ===" -ForegroundColor Cyan
 Write-Host "Repository: $RepoRoot"
 Write-Host "Target:      $TargetPath"
 Write-Host ""
 
-# --- Hardcoded dependency map (source of truth: skill-catalog.yaml) ---
+# ===================================================================
+# Hardcoded dependency map — source of truth: skill-catalog.yaml
+# Update this when adding/removing skills with dependencies.
+# ===================================================================
 $Script:DependencyMap = @{
-    'session-context'    = @()
-    'project-workflow'   = @('session-context')
-    'task-orchestrator'  = @('session-context')
+    'session-context'      = @()
+    'skill-creator'        = @()
+    'karpathy-guidelines'  = @()
+    'canvas-design'        = @()
+    'frontend-design'      = @()
+    'impeccable'           = @()
+    'docx'                 = @()
+    'pdf'                  = @()
+    'pptx'                 = @()
+    'xlsx'                 = @()
+    'gsap-core'            = @()
+    'gsap-frameworks'      = @()
+    'gsap-performance'     = @()
+    'gsap-plugins'         = @()
+    'gsap-react'           = @()
+    'gsap-scrolltrigger'   = @()
+    'gsap-timeline'        = @()
+    'gsap-utils'           = @()
+    'project-workflow'     = @('session-context')
+    'task-orchestrator'    = @('session-context')
 }
 
+# Display versions (read from skill-catalog.yaml for reference)
 $Script:SkillVersions = @{
-    'session-context'    = '2.1.0'
-    'project-workflow'   = '1.3.0'
-    'task-orchestrator'  = '1.1.0'
+    'session-context'      = '2.1.0'
+    'skill-creator'        = '1.0.0'
+    'karpathy-guidelines'  = '1.0.0'
+    'canvas-design'        = '1.0.0'
+    'frontend-design'      = '1.0.0'
+    'impeccable'           = '3.9.1'
+    'docx'                 = '1.0.0'
+    'pdf'                  = '1.0.0'
+    'pptx'                 = '1.0.0'
+    'xlsx'                 = '1.0.0'
+    'gsap-core'            = '1.0.0'
+    'gsap-frameworks'      = '1.0.0'
+    'gsap-performance'     = '1.0.0'
+    'gsap-plugins'         = '1.0.0'
+    'gsap-react'           = '1.0.0'
+    'gsap-scrolltrigger'   = '1.0.0'
+    'gsap-timeline'        = '1.0.0'
+    'gsap-utils'           = '1.0.0'
+    'project-workflow'     = '1.3.0'
+    'task-orchestrator'    = '1.1.0'
 }
 
-$Script:InstallOrder = @('session-context', 'project-workflow', 'task-orchestrator')
+# Install order (foundation → meta → design → documents → animation → workflow)
+$Script:InstallOrder = @(
+    'session-context', 'skill-creator', 'karpathy-guidelines',
+    'canvas-design', 'frontend-design', 'impeccable',
+    'docx', 'pdf', 'pptx', 'xlsx',
+    'gsap-core', 'gsap-frameworks', 'gsap-performance', 'gsap-plugins',
+    'gsap-react', 'gsap-scrolltrigger', 'gsap-timeline', 'gsap-utils',
+    'project-workflow', 'task-orchestrator'
+)
 
-# --- Resolve dependency closure ---
+# ===================================================================
+# Resolve dependency closure (BFS transitive closure)
+# ===================================================================
 function Resolve-Dependencies {
     param([string[]]$requested)
 
@@ -104,8 +146,7 @@ function Resolve-Dependencies {
         $queue.RemoveAt(0)
         if ($name -notin $resolved) {
             $resolved.Add($name) | Out-Null
-            $deps = $Script:DependencyMap[$name]
-            foreach ($dep in $deps) {
+            foreach ($dep in $Script:DependencyMap[$name]) {
                 if ($dep -notin $resolved) {
                     $queue.Add($dep) | Out-Null
                 }
@@ -113,13 +154,12 @@ function Resolve-Dependencies {
         }
     }
 
-    # Topological sort: foundation first, then dependents
-    $sorted = $resolved | Sort-Object {
-        for ($i = 0; $i -lt $Script:InstallOrder.Count; $i++) {
-            if ($_ -eq $Script:InstallOrder[$i]) { return $i }
-        }
-        return 99
+    # Topological sort using InstallOrder
+    $orderMap = @{}
+    for ($i = 0; $i -lt $Script:InstallOrder.Count; $i++) {
+        $orderMap[$Script:InstallOrder[$i]] = $i
     }
+    $sorted = $resolved | Sort-Object { if ($orderMap.ContainsKey($_)) { $orderMap[$_] } else { 99 } }
     return $sorted
 }
 
@@ -131,7 +171,9 @@ function Get-SkillVersion {
     return "unknown"
 }
 
-# --- Main installation ---
+# ===================================================================
+# Main installation
+# ===================================================================
 $toInstall = Resolve-Dependencies -requested $Skills
 
 Write-Host "Skills to install (dependency order):" -ForegroundColor Yellow
@@ -145,7 +187,7 @@ $skillTargetDir = Join-Path $TargetPath ".claude\skills"
 $backupDir = Join-Path $skillTargetDir ".backup\$(Get-Date -Format 'yyyyMMdd-HHmmss')"
 
 $installedCount = 0
-$commandCount = 0
+$totalFiles = 0
 
 foreach ($skillName in $toInstall) {
     $srcDir = Join-Path $SkillSourceDir $skillName
@@ -161,7 +203,6 @@ foreach ($skillName in $toInstall) {
         $skillBackupDir = Join-Path $backupDir $skillName
         New-Item -ItemType Directory -Force -Path $skillBackupDir | Out-Null
         Copy-Item -Recurse -Force "$dstDir\*" $skillBackupDir
-        Write-Host "  Backed up: $skillName -> .backup\" -ForegroundColor DarkGray
     }
 
     # Create target and copy
@@ -171,7 +212,7 @@ foreach ($skillName in $toInstall) {
     $fileCount = (Get-ChildItem -Recurse -File $dstDir).Count
     Write-Host "  Installed: $skillName ($fileCount files)" -ForegroundColor Green
     $installedCount++
-    $commandCount += (Get-ChildItem -Path (Join-Path $dstDir "commands") -File -ErrorAction SilentlyContinue).Count
+    $totalFiles += $fileCount
 }
 
 # Install hooks if requested
@@ -182,9 +223,8 @@ if ($WithHooks) {
     if (Test-Path $hooksSrc) {
         New-Item -ItemType Directory -Force -Path $hooksDst | Out-Null
 
-        # hooks.json
-        $hooksJsonSrc = Join-Path $hooksSrc "hooks.json"
         $hooksJsonDst = Join-Path $TargetPath ".claude\hooks.json"
+        $hooksJsonSrc = Join-Path $hooksSrc "hooks.json"
         if (Test-Path $hooksJsonSrc) {
             if ((Test-Path $hooksJsonDst) -and (-not $Force)) {
                 Copy-Item -Force $hooksJsonDst (Join-Path $backupDir "hooks.json")
@@ -193,7 +233,6 @@ if ($WithHooks) {
             Write-Host "  Installed: hooks.json" -ForegroundColor Green
         }
 
-        # Shell scripts
         Get-ChildItem -Path $hooksSrc -Filter "*.sh" | ForEach-Object {
             $dst = Join-Path $hooksDst $_.Name
             if ((Test-Path $dst) -and (-not $Force)) {
@@ -202,19 +241,12 @@ if ($WithHooks) {
             Copy-Item -Force $_.FullName $dst
             Write-Host "  Installed: hooks/$($_.Name)" -ForegroundColor Green
         }
-
-        # Make shell scripts executable on Unix
-        if ($IsLinux -or $IsMacOS) {
-            Get-ChildItem -Path $hooksDst -Filter "*.sh" | ForEach-Object {
-                chmod +x $_.FullName
-            }
-        }
     }
 }
 
 Write-Host ""
 Write-Host "=== Installation Complete ===" -ForegroundColor Cyan
-Write-Host "$installedCount skills, ~$commandCount commands installed to $skillTargetDir"
+Write-Host "$installedCount skills, $totalFiles total files installed to $skillTargetDir"
 if ($WithHooks) {
     Write-Host "Hooks installed to $($TargetPath)\.claude\hooks\"
 }
