@@ -2,7 +2,7 @@
 # Complete manifest of all 20 managed Claude Code skills.
 # Used by install/sync/validate scripts for dependency resolution and metadata.
 
-catalog_version: "2.0"
+catalog_version: "2.1"
 last_updated: "2026-07-06"
 
 skills:
@@ -54,6 +54,22 @@ skills:
     dependencies: []
     commands: []
     tags: [coding-guidelines, best-practices, code-review]
+
+  skills-manager:
+    version: "1.0.0"
+    display_name: "Skills Repository Manager"
+    layer: meta
+    description: >
+      Manage the Claude Code skills repository — sync, install, status.
+      Trigger when the user wants to sync skills, update the skills repo,
+      install skills to a project, or check skills status. Use for:
+      同步技能, 更新技能仓库, 安装技能, 技能状态, skills sync/install/status.
+    dependencies: []
+    commands:
+      - skills-sync
+      - skills-install
+      - skills-status
+    tags: [skills-management, sync, install, maintenance]
 
   # ==================================================================
   # Design Layer — visual art, UI design, frontend polish
