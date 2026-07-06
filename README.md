@@ -18,7 +18,7 @@
 
 ### 一键安装（推荐）
 
-在项目目录下运行一条命令，技能自动安装到 `.claude/skills/`：
+运行一条命令，技能自动安装到全局 `~/.claude/skills/`，所有项目可用：
 
 **macOS / Linux：**
 ```bash
@@ -30,14 +30,14 @@ bash <(curl -fsSL https://raw.githubusercontent.com/zq88297/skillsManage/master/
 irm https://raw.githubusercontent.com/zq88297/skillsManage/master/scripts/setup.ps1 | iex; Install-Skills
 ```
 
-### 安装到全局（所有项目可用）
+### 只安装到当前项目
 
 ```bash
 # macOS / Linux
-bash <(curl -fsSL .../setup.sh) --scope global
+bash <(curl -fsSL .../setup.sh) --scope project
 
 # Windows PowerShell
-irm ... | iex; Install-Skills -Scope global
+irm ... | iex; Install-Skills -Scope project
 ```
 
 ### 只安装部分技能

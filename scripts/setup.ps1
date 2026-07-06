@@ -7,15 +7,15 @@
     Supports project-level and global installation.
 
 .EXAMPLE
-    # Install to current project
+    # Install globally (all projects) — default
     irm https://raw.githubusercontent.com/zq88297/skillsManage/master/scripts/setup.ps1 | iex; Install-Skills
 
 .EXAMPLE
-    # Install globally (all projects)
-    irm ... | iex; Install-Skills -Scope global
+    # Install to current project only
+    irm ... | iex; Install-Skills -Scope project
 
 .EXAMPLE
-    # Install specific skills
+    # Install specific skills globally
     irm ... | iex; Install-Skills -Skills "gsap-core,gsap-timeline"
 
 .EXAMPLE
@@ -25,7 +25,7 @@
 function Install-Skills {
     param(
         [ValidateSet("project", "global")]
-        [string]$Scope = "project",
+        [string]$Scope = "global",
         [string]$TargetPath = "",
         [string[]]$Skills = @()
     )
@@ -103,8 +103,8 @@ function Install-Skills {
 # Show usage when loaded
 if ($MyInvocation.InvocationName -ne '&') {
     Write-Host "Skills installer loaded. Usage:" -ForegroundColor Cyan
-    Write-Host "  Install-Skills                                    # Install to current project" -ForegroundColor White
-    Write-Host "  Install-Skills -Scope global                      # Install globally" -ForegroundColor White
+    Write-Host "  Install-Skills                                    # Install globally (default)" -ForegroundColor White
+    Write-Host "  Install-Skills -Scope project                     # Install to current project" -ForegroundColor White
     Write-Host "  Install-Skills -Skills 'gsap-core,gsap-timeline'  # Install specific skills" -ForegroundColor White
     Write-Host ""
 }

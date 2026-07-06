@@ -5,17 +5,17 @@
 #   bash <(curl -fsSL https://raw.githubusercontent.com/zq88297/skillsManage/master/scripts/setup.sh)
 #
 # Options:
-#   --scope project|global   Install scope (default: project)
+#   --scope project|global   Install scope (default: global)
 #   --skills skill1,skill2   Only install specific skills
 #
 # Examples:
-#   # Install to current project
+#   # Install globally (all projects) — default
 #   bash <(curl -fsSL .../setup.sh)
 #
-#   # Install globally (all projects)
-#   bash <(curl -fsSL .../setup.sh) --scope global
+#   # Install to current project only
+#   bash <(curl -fsSL .../setup.sh) --scope project
 #
-#   # Install specific skills to current project
+#   # Install specific skills globally
 #   bash <(curl -fsSL .../setup.sh) --skills gsap-core,gsap-timeline
 #
 set -euo pipefail
@@ -32,7 +32,7 @@ cleanup() {
 trap cleanup EXIT
 
 # Parse arguments
-SCOPE="project"
+SCOPE="global"
 SELECTED_SKILLS=""
 
 while [[ $# -gt 0 ]]; do
@@ -49,12 +49,12 @@ while [[ $# -gt 0 ]]; do
             echo "Usage: setup.sh [--scope project|global] [--skills <skill1,skill2>]"
             echo ""
             echo "Options:"
-            echo "  --scope    Install scope: project (default) or global"
+            echo "  --scope    Install scope: global (default) or project"
             echo "  --skills   Comma-separated skill names (default: all)"
             echo ""
             echo "Examples:"
             echo "  bash <(curl -fsSL .../setup.sh)"
-            echo "  bash <(curl -fsSL .../setup.sh) --scope global"
+            echo "  bash <(curl -fsSL .../setup.sh) --scope project"
             echo "  bash <(curl -fsSL .../setup.sh) --skills gsap-core,gsap-timeline"
             exit 0
             ;;
