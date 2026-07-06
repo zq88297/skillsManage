@@ -69,6 +69,9 @@ $Script:DependencyMap = @{
     'skill-creator'        = @()
     'karpathy-guidelines'  = @()
     'skills-manager'       = @()
+    'skills-install'       = @()
+    'skills-sync'          = @()
+    'skills-status'        = @()
     'canvas-design'        = @()
     'frontend-design'      = @()
     'impeccable'           = @()
@@ -94,6 +97,9 @@ $Script:SkillVersions = @{
     'skill-creator'        = '1.0.0'
     'karpathy-guidelines'  = '1.0.0'
     'skills-manager'       = '1.0.0'
+    'skills-install'       = '1.0.0'
+    'skills-sync'          = '1.0.0'
+    'skills-status'        = '1.0.0'
     'canvas-design'        = '1.0.0'
     'frontend-design'      = '1.0.0'
     'impeccable'           = '3.9.1'
@@ -116,6 +122,7 @@ $Script:SkillVersions = @{
 # Install order (foundation → meta → design → documents → animation → workflow)
 $Script:InstallOrder = @(
     'session-context', 'skill-creator', 'karpathy-guidelines', 'skills-manager',
+    'skills-install', 'skills-sync', 'skills-status',
     'canvas-design', 'frontend-design', 'impeccable',
     'docx', 'pdf', 'pptx', 'xlsx',
     'gsap-core', 'gsap-frameworks', 'gsap-performance', 'gsap-plugins',
