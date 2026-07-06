@@ -1,0 +1,19 @@
+# Auto-convert to LF for all text files in the repo (cross-platform compatibility)
+*.md        text eol=lf
+*.yaml      text eol=lf
+*.yml       text eol=lf
+*.json      text eol=lf
+*.ps1       text eol=lf
+*.sh        text eol=lf
+*.py        text eol=lf
+*.mjs       text eol=lf
+*.js        text eol=lf
+*.html      text eol=lf
+*.css       text eol=lf
+*.txt       text eol=lf
+*.xsd       text eol=lf
+
+# Binary files — don't touch
+*.ttf       binary
+*.zip       binary
+*.skill     binary

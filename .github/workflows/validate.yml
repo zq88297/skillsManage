@@ -42,13 +42,15 @@ jobs:
           errors=0
           for skill_file in skills/*/SKILL.md; do
             name=$(basename $(dirname "$skill_file"))
-            if ! head -1 "$skill_file" | grep -q '^---$'; then
-              echo "FAIL: $name — missing YAML frontmatter (no opening ---)"
+            # Strip CR for Windows CRLF compatibility on Linux runner
+            first_line=$(head -1 "$skill_file" | tr -d '\r')
+            if [ "$first_line" != "---" ]; then
+              echo "FAIL: $name — missing YAML frontmatter (first line: '$first_line')"
               errors=$((errors + 1))
               continue
             fi
-            # Extract name field between --- markers
-            yaml_name=$(sed -n '/^---$/,/^---$/p' "$skill_file" | grep '^name:' | head -1 | sed 's/name:\s*//' | tr -d '"')
+            # Extract name field between --- markers (handle CRLF)
+            yaml_name=$(sed -n '/^---\r\?$/,/^---\r\?$/p' "$skill_file" | tr -d '\r' | grep '^name:' | head -1 | sed 's/name:\s*//' | tr -d '"')
             if [ -z "$yaml_name" ]; then
               echo "FAIL: $name — no 'name:' in frontmatter"
               errors=$((errors + 1))
