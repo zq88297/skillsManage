@@ -1,7 +1,7 @@
 # CLAUDE.md — Skills Management Repository
 
 ## Purpose
-Central version-controlled repository for ALL Claude Code skills (20 skills, 400+ files).
+Central version-controlled repository for ALL Claude Code skills (21 skills, 400+ files).
 Source of truth — install the complete skill ecosystem into any project with one command.
 
 ## Repository Conventions
@@ -59,8 +59,9 @@ Each skill has its own semver in `skill-catalog.yaml`.
 | 18 | gsap-utils | animation | 1.0.0 | — | — |
 | 19 | project-workflow | workflow | 1.3.0 | → session-context | 3 commands, agents/ |
 | 20 | task-orchestrator | workflow | 1.1.0 | → session-context | 2 commands |
+| 21 | skills-manager | meta | 1.0.0 | — | 3 commands |
 
-**Dependency chain:** Only `project-workflow` and `task-orchestrator` have dependencies (both → `session-context`). All other 17 skills are independent.
+**Dependency chain:** Only `project-workflow` and `task-orchestrator` have dependencies (both → `session-context`). All other 18 skills are independent.
 
 ---
 
@@ -99,6 +100,14 @@ Each skill has its own semver in `skill-catalog.yaml`.
 ```powershell
 .\scripts\export-cursor.ps1 -OutputPath F:\MyProject
 ```
+
+### Slash Commands (skills-manager)
+
+| Command | Purpose |
+|---------|---------|
+| `/skills-status` | Check health of repo, source, and current project |
+| `/skills-sync` | Pull updates from ~/.claude/skills/ → repo → push |
+| `/skills-install` | Install skills from repo to current project |
 
 ---
 
