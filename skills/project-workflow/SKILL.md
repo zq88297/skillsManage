@@ -1,6 +1,6 @@
 ---
 name: project-workflow
-description: "Project lifecycle management — 需求分析→方案设计→代码实现→测试→验收. Trigger on: 新项目, 新功能, 新模块, 新需求, 新增, 添加, 做一个, 实现一个, 开发一个, 项目管理, 开发流程, project workflow, requirements, 需求分析, 方案设计, 验收, 帮我做, 帮我写, 帮我开发, 帮我实现, 从头开始, 从零开始, 我要做, 我想做, 我需要."
+description: "Project lifecycle management — 需求分析→Grill-Me深挖→方案设计→代码实现→测试→验收. Integrates grill-me for requirement validation, design-taste-frontend or frontend-design for UI generation, and impeccable for UI polish. Trigger on: 新项目, 新功能, 新模块, 新需求, 新增, 添加, 做一个, 实现一个, 开发一个, 项目管理, 开发流程, project workflow, requirements, 需求分析, 方案设计, 验收, 帮我做, 帮我写, 帮我开发, 帮我实现, 从头开始, 从零开始, 我要做, 我想做, 我需要."
 ---
 
 # 项目管理流程
@@ -17,11 +17,12 @@ description: "Project lifecycle management — 需求分析→方案设计→代
 用户提出需求
   │
   ▼
-① 需求分析 ──→ 输出需求文档，用户确认
+① 需求分析 ──→ 初步提问 → Grill-Me 深挖 → 输出需求文档，用户确认
   │
   ▼
-② 方案设计 ──→ 技术选型、功能流程，用户确认 → 验证方案满足需求
-  │
+② 方案设计 ──→ 技术选型、功能流程 → 如有UI：选择 Taste-Skill/Frontend-Design → 用户确认
+  │                                         │
+  │                                         └─ 生成界面后 → 询问是否 Impeccable 优化
   ▼
 ③ 代码实现 ──→ 按方案编码，偏离方案时确认 → 单元测试全通过
   │
@@ -91,7 +92,15 @@ description: "Project lifecycle management — 需求分析→方案设计→代
    - 有哪些性能要求？有哪些约束条件？
    - 和哪些现有系统交互？参考文件中是否有未覆盖的场景？
 
-2. 整理成结构化的需求文档，写入 `.claude/context/requirements.md`：
+2. **Grill-Me 需求深挖：** 初步收集需求后，调用 `/grill-me` 对用户的需求进行深度访谈：
+   - 遍历每个设计决策分支，逐一确认依赖关系
+   - 暴露用户未明确表达的隐含假设和边界条件
+   - 追问技术约束、扩展性预期、异常场景处理
+   - 直到所有分支达成共识，输出决策摘要
+   
+   **目的：** 在写需求文档之前，确保对需求的理解没有盲区，避免后期因需求理解偏差导致返工。
+
+3. 基于 Grill-Me 的决策摘要，整理成结构化的需求文档，写入 `.claude/context/requirements.md`：
    ```markdown
    # 项目需求文档
    > 创建时间: {datetime}
@@ -103,8 +112,8 @@ description: "Project lifecycle management — 需求分析→方案设计→代
    ## 验收标准
    ```
 
-3. 向用户确认："以上需求是否准确？有无遗漏？"
-4. **用户确认无误后**，进入 ②。
+4. 向用户确认："以上需求是否准确？有无遗漏？"
+5. **用户确认无误后**，进入 ②。
 
 ### ② 方案设计
 
@@ -473,47 +482,64 @@ AI 自动识别以下常见 Bug 清单格式：
 
 ---
 
-## 前端界面自动美化（frontend-design 集成）
+## 前端界面生成
 
-当项目涉及前端界面开发时（需求中包含 UI、界面、前端、页面、组件、样式、布局、交互、视觉等关键词），自动检测并调用 `/frontend-design` skill 进行界面美化。
+当项目涉及前端界面开发时（需求中包含 UI、界面、前端、页面、组件、样式、布局、交互、视觉等关键词），按以下流程处理。
 
-**检测时机：** ① 需求分析阶段，识别到 UI 相关需求后立即检测。
+**检测时机：** ② 方案设计阶段，确认技术方案后立即检测。
 
-**检测与调用流程：**
+### Step 1：检测 UI 需求
 
 ```text
-需求中包含 UI/界面相关内容？
+方案设计涉及 UI/界面？
   │
-  ├─ 是 → 检查 /frontend-design skill 是否已安装
-  │     │
-  │     ├─ 已安装 → 自动调用 /frontend-design，将 UI 需求传入
-  │     │           由 frontend-design 负责界面设计和美化
-  │     │           本 workflow 继续管理非 UI 部分的开发流程
-  │     │
-  │     └─ 未安装 → 提示用户：
-  │           "检测到项目涉及前端界面开发，建议安装 /frontend-design skill
-  │            以获得专业的界面设计和美化能力。
-  │
-  │            安装方式：{从对应仓库下载安装}
-  │
-  │            是否安装？"
-  │
-  │           ├─ 用户确认安装 → 指导用户完成安装后继续
-  │           └─ 用户跳过 → 本 workflow 自行处理 UI 部分（无专业美化）
+  └─ 是 → 进入 Step 2（选择前端生成工具）
   │
   └─ 否 → 正常流程，不涉及前端
 ```
+
+### Step 2：选择前端生成工具
+
+**询问用户选择 UI 生成方式（使用 AskUserQuestion）：**
+
+> "项目涉及前端界面，请选择界面生成方式："
+> - **Taste-Skill**（`/design-taste-frontend`）— 反模板化前端，适合落地页、作品集、品牌站
+> - **Frontend-Design**（`/frontend-design`）— 通用前端界面，适合仪表盘、SaaS、后台管理
+> - **跳过** — 手动处理 UI，不需要 AI 辅助
+
+| 用户选择 | 行为 |
+|---------|------|
+| Taste-Skill | 检查 `design-taste-frontend` 是否已安装 → 已安装则调用生成界面 → 进入 Step 3 |
+| Frontend-Design | 检查 `frontend-design` 是否已安装 → 已安装则调用生成界面 → 进入 Step 3 |
+| 跳过 | 本 workflow 自行处理 UI 部分（无专业美化） |
+
+**如对应 skill 未安装：** 提示用户安装，或选择另一个已安装的 skill。
+
+### Step 3：Impeccable 界面优化
+
+前端界面生成完成后，**询问用户是否需要进一步优化（使用 AskUserQuestion）：**
+
+> "前端界面已生成，是否需要 Impeccable 进行深度优化？"
+> - **是，优化** — 调用 `/impeccable` 对已生成的界面进行 UX 审查、视觉层次优化、可访问性检查、动效打磨
+> - **否，跳过** — 当前界面已满足需求
+
+| 用户选择 | 行为 |
+|---------|------|
+| 优化 | 检查 `impeccable` 是否已安装 → 已安装则调用优化 → 继续开发流程 |
+| 跳过 | 直接继续开发流程 |
 
 **职责分工：**
 
 | 职责 | 负责方 |
 | --- | --- |
 | 需求分析、方案设计、项目管理 | project-workflow |
-| 前端界面设计、组件选型、样式美化 | frontend-design |
+| 需求深挖、决策树遍历 | grill-me |
+| 前端界面生成 | design-taste-frontend 或 frontend-design |
+| 界面深度优化（UX/可访问性/动效） | impeccable |
 | 非 UI 部分的代码实现 | project-workflow |
-| 前端代码实现 | project-workflow（按 frontend-design 的设计方案） |
+| 前端代码实现 | project-workflow（按 UI skill 的设计方案） |
 
-**注意：** frontend-design 只负责界面设计和美化方案，不替代 project-workflow 的项目管理流程。两者协作而非替代。
+**注意：** 前端 skill 只负责界面设计和美化方案，不替代 project-workflow 的项目管理流程。各 skill 协作而非替代。
 
 ---
 
