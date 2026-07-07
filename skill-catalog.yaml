@@ -1,9 +1,9 @@
 ﻿# skill-catalog.yaml
-# Complete manifest of all 20 managed Claude Code skills.
+# Complete manifest of all 26 managed Claude Code skills.
 # Used by install/sync/validate scripts for dependency resolution and metadata.
 
-catalog_version: "2.1"
-last_updated: "2026-07-06"
+catalog_version: "2.2"
+last_updated: "2026-07-07"
 
 skills:
   # ==================================================================
@@ -104,6 +104,18 @@ skills:
     commands: []
     tags: [skills-management, status, entry-point]
 
+  grill-me:
+    version: "1.0.0"
+    display_name: "Grill Me — Design Interview"
+    layer: meta
+    description: >
+      Interview the user relentlessly about a plan or design until reaching shared
+      understanding, resolving each branch of the decision tree. Use when user wants
+      to stress-test a plan, get grilled on their design, or mentions "grill me".
+    dependencies: []
+    commands: []
+    tags: [interview, planning, design-review, stress-test, decision-tree]
+
   # ==================================================================
   # Design Layer — visual art, UI design, frontend polish
   # ==================================================================
@@ -145,6 +157,19 @@ skills:
     dependencies: []
     commands: []
     tags: [ui-design, ux-review, accessibility, theming, polish, critique]
+
+  ui-ux-pro-max:
+    version: "1.0.0"
+    display_name: "UI/UX Pro Max — Design Intelligence"
+    layer: design
+    description: >
+      Comprehensive design guide for web and mobile applications. Contains 50+ styles,
+      161 color palettes, 57 font pairings, 161 product types, 99 UX guidelines, and
+      25 chart types across 10 technology stacks. Use for UI design, UX review,
+      color/typography selection, and pre-delivery quality checks.
+    dependencies: []
+    commands: []
+    tags: [ui-design, ux, design-system, color, typography, accessibility, charts]
 
   # ==================================================================
   # Document Layer — Word, PDF, PowerPoint, Excel
@@ -339,8 +364,8 @@ skills:
 # Layer 0 (no deps) → Layer 1 (depend on layer 0)
 # ==================================================================
 dependency_order:
-  - [session-context, skill-creator, karpathy-guidelines]
-  - [canvas-design, frontend-design, impeccable]
+  - [session-context, skill-creator, karpathy-guidelines, skills-manager, skills-sync, skills-install, skills-status, grill-me]
+  - [canvas-design, frontend-design, impeccable, ui-ux-pro-max]
   - [docx, pdf, pptx, xlsx]
   - [gsap-core, gsap-frameworks, gsap-performance, gsap-plugins, gsap-react, gsap-scrolltrigger, gsap-timeline, gsap-utils]
   - [project-workflow, task-orchestrator]
