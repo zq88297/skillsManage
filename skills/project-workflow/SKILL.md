@@ -22,7 +22,7 @@ description: "Project lifecycle management — 需求分析→Grill-Me深挖→�
   ▼
 ② 方案设计 ──→ 技术选型、功能流程 → 如有UI：选择 Taste-Skill/Frontend-Design → 用户确认
   │                                         │
-  │                                         └─ 生成界面后 → 询问是否 Impeccable 优化
+  │                                         └─ 生成界面后 → react-bits 匹配组件 → Impeccable 优化
   ▼
 ③ 代码实现 ──→ 按方案编码，偏离方案时确认 → 单元测试全通过
   │
@@ -177,9 +177,49 @@ description: "Project lifecycle management — 需求分析→Grill-Me深挖→�
    ```
 
 4. **验证方案是否满足需求：** 逐条对照需求文档，确认每个需求点都有对应的实现方案。
-5. 向用户确认方案，**用户确认后**进入 ③。
+
+5. **UI 设计→组件匹配→抛光流水线（如有 UI）：**
+
+   ```
+   ui-ux-pro-max / frontend-design / design-taste-frontend
+     │  生成设计系统（风格、配色、字体、动效等级）
+     │
+     ├─→ 询问用户："需要我根据设计风格推荐 React Bits 动画组件吗？"
+     │     │
+     │     ├─ 是 → 调用 react-bits 技能
+     │     │   python skills/react-bits/scripts/match.py --design-system design-system/<project>/MASTER.md
+     │     │   或 python skills/react-bits/scripts/match.py --style "<style-name>"
+     │     │   → 将推荐结果写入 .claude/context/components.md
+     │     │
+     │     └─ 否 → 跳过
+     │
+     └─→ 询问用户："界面是否需要 Impeccable 进一步优化？"
+           ├─ 是 → 调用 impeccable 技能
+           └─ 否 → 继续
+   ```
+
+   **react-bits 推荐报告写入 `.claude/context/components.md`：**
+   ```markdown
+   # 组件推荐报告
+   > 匹配时间: {datetime}
+   > 设计风格: {style_name}
+
+   ## 推荐组件清单
+   （按分类组织的组件推荐表，含安装命令和设计Token集成代码）
+   ```
+
+6. 向用户确认方案，**用户确认后**进入 ③。
 
 ### ③ 代码实现
+
+#### 3.0 组件库预安装（如有 UI）
+
+**如果 ② 阶段生成了 `.claude/context/components.md`：**
+
+1. 读取组件推荐报告，提取安装命令
+2. 询问用户："是否安装推荐的 React Bits 组件？"
+3. 用户确认后，逐个执行 `npx shadcn@latest add @react-bits/<ComponentName>-TS-TW`
+4. 组件安装完成后，继续 3.1
 
 #### 3.1 新功能开发
 

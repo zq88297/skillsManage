@@ -40,3 +40,21 @@ Interpret creatively and make unexpected choices that feel genuinely designed fo
 **IMPORTANT**: Match implementation complexity to the aesthetic vision. Maximalist designs need elaborate code with extensive animations and effects. Minimalist or refined designs need restraint, precision, and careful attention to spacing, typography, and subtle details. Elegance comes from executing the vision well.
 
 Remember: Claude is capable of extraordinary creative work. Don't hold back, show what can truly be created when thinking outside the box and committing fully to a distinctive vision.
+
+---
+
+## After Design: Component Matching
+
+Once the aesthetic direction is chosen and implemented, offer to match React Bits animated components to the design:
+
+> "This [style] design would benefit from matching React Bits animated components. Want me to recommend components that fit the [aesthetic] style?"
+
+Use the **react-bits** skill to map the design direction to matching components:
+```bash
+python skills/react-bits/scripts/match.py --style "<aesthetic-direction>"
+```
+
+This bridges the design → implementation gap with:
+- Install-ready component recommendations (`npx shadcn@latest add @react-bits/...`)
+- Pre-configured props matching the design's color and motion choices
+- Categorized output: Text Animations, Animations, Components, Backgrounds

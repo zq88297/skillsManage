@@ -171,6 +171,21 @@ skills:
     commands: []
     tags: [ui-design, ux, design-system, color, typography, accessibility, charts]
 
+  react-bits:
+    version: "1.0.0"
+    display_name: "React Bits — Components Matching"
+    layer: design
+    description: >
+      Bridge between UI design systems and React Bits component library.
+      Maps 49 design styles to 135 animated React components across 4 categories
+      (Text Animations, Animations, Components, Backgrounds). Trigger after ui-ux-pro-max,
+      frontend-design, or design-taste-frontend generates a design style. Provides
+      install commands and design token integration code.
+    dependencies: []
+    commands:
+      - recommend
+    tags: [react-bits, component-matching, design-to-code, animation, shadcn]
+
   # ==================================================================
   # Document Layer — Word, PDF, PowerPoint, Excel
   # ==================================================================
