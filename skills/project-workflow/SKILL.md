@@ -540,15 +540,27 @@ AI 自动识别以下常见 Bug 清单格式：
 
 ### Step 2：选择前端生成工具
 
+**选择指南（向用户展示）：**
+
+| 诉求 | 推荐 Skill | 特点 |
+|------|-----------|------|
+| **效率优先** | `ui-ux-pro-max` | 为某个产品类型快速生成结构完整、符合行业标准、能直接用于演示的界面 |
+| **设计独特性** | `design-taste-frontend` | 追求页面更高级的质感，想主动参与"调味"过程，给你更多创作上的惊喜 |
+| **通用前端** | `frontend-design` | 通用前端界面生成，适合仪表盘、SaaS、后台管理等场景 |
+
+> 💡 **组合策略：** 三者并不冲突，甚至可以组合使用。例如，用 `ui-ux-pro-max` 快速搭建出符合规范的结构框架，再用 Taste Skill 的理念或 `impeccable` 的 `/polish` 命令对细节和质感进行打磨。
+
 **询问用户选择 UI 生成方式（使用 AskUserQuestion）：**
 
 > "项目涉及前端界面，请选择界面生成方式："
-> - **Taste-Skill**（`/design-taste-frontend`）— 反模板化前端，适合落地页、作品集、品牌站
-> - **Frontend-Design**（`/frontend-design`）— 通用前端界面，适合仪表盘、SaaS、后台管理
+> - **UI-UX-Pro-Max** — 效率优先，快速生成行业标准界面框架
+> - **Taste-Skill**（`/design-taste-frontend`）— 追求设计独特性，高级质感与创意惊喜
+> - **Frontend-Design**（`/frontend-design`）— 通用前端界面，仪表盘/SaaS/后台
 > - **跳过** — 手动处理 UI，不需要 AI 辅助
 
 | 用户选择 | 行为 |
 |---------|------|
+| UI-UX-Pro-Max | 调用 `ui-ux-pro-max` 生成设计系统 → 进入 Step 3 |
 | Taste-Skill | 检查 `design-taste-frontend` 是否已安装 → 已安装则调用生成界面 → 进入 Step 3 |
 | Frontend-Design | 检查 `frontend-design` 是否已安装 → 已安装则调用生成界面 → 进入 Step 3 |
 | 跳过 | 本 workflow 自行处理 UI 部分（无专业美化） |
