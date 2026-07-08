@@ -601,25 +601,6 @@ python3 skills/ui-ux-pro-max/scripts/search.py "fintech crypto" --design-system 
 
 ---
 
-## Next Steps: From Design to Components
-
-After generating a design system, bridge the gap from design tokens to real components:
-
-### → react-bits (animated React components)
-```bash
-# Auto-match components to your design style
-python skills/react-bits/scripts/match.py --style "glassmorphism"
-
-# Or from a persisted MASTER.md
-python skills/react-bits/scripts/match.py --design-system design-system/<project>/MASTER.md
-```
-Matches your style to 135 animated React Bits components with install commands and design-token integration code.
-
-### → shadcn/ui (headless UI components)  
-Use the shadcn/ui MCP server to search and install base components (buttons, dialogs, tables, etc.) that follow your design tokens.
-
----
-
 ## Common Rules for Professional UI
 
 These are frequently overlooked issues that make UI look unprofessional:
