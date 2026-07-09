@@ -8,7 +8,27 @@
 
 ## 执行流程
 
-### Step 1：检查源（~/.claude/skills/）
+### Step 1：检测操作系统
+
+使用当前系统的对应命令。以下是 Linux/macOS 和 Windows 两种版本。
+
+### Step 2：检查源（~/.claude/skills/）
+
+**Linux / macOS：**
+
+```bash
+src="$HOME/.claude/skills"
+if [ -d "$src" ]; then
+    count=$(find "$src" -maxdepth 1 -mindepth 1 -type d -exec test -f {}/SKILL.md \; -print | wc -l | tr -d ' ')
+    echo "源 (已安装): $count 个技能"
+    echo "路径: $src"
+    echo "最后修改: $(stat -c %y "$src" 2>/dev/null || stat -f %Sm "$src")"
+else
+    echo "源: 未找到 (Claude Code 可能未安装)"
+fi
+```
+
+**Windows (PowerShell)：**
 
 ```powershell
 $src = "$env:USERPROFILE\.claude\skills"
@@ -22,11 +42,33 @@ if (Test-Path $src) {
 }
 ```
 
-### Step 2：检查仓库
+### Step 3：检查仓库
+
+先定位仓库（当前目录包含 `skills/` 和 `skill-catalog.yaml` 则使用，否则询问用户）。
+
+**Linux / macOS：**
+
+```bash
+repo="<repo_path>"  # 由 Step 1 确定
+if [ -d "$repo/skills" ]; then
+    count=$(find "$repo/skills" -maxdepth 1 -mindepth 1 -type d | wc -l | tr -d ' ')
+    cd "$repo"
+    last_commit=$(git log -1 --format="%h %s (%ar)")
+    status=$(git status --short)
+    echo "仓库: $count 个技能"
+    echo "路径: $repo"
+    echo "最新提交: $last_commit"
+    if [ -n "$status" ]; then echo "未提交更改: 有"; else echo "未提交更改: 无"; fi
+else
+    echo "仓库: 未找到"
+fi
+```
+
+**Windows (PowerShell)：**
 
 ```powershell
-$repo = "F:\AICode\skillsManage"  # 或用户配置的路径
-if (Test-Path $repo) {
+$repo = "<repo_path>"  # 由 Step 1 确定
+if (Test-Path "$repo\skills") {
     $count = (Get-ChildItem -Directory "$repo\skills").Count
     Set-Location $repo
     $lastCommit = git log -1 --format="%h %s (%ar)"
@@ -40,7 +82,22 @@ if (Test-Path $repo) {
 }
 ```
 
-### Step 3：检查当前项目
+### Step 4：检查当前项目
+
+**Linux / macOS：**
+
+```bash
+project_skills="${CLAUDE_PROJECT_DIR:-$(pwd)}/.claude/skills"
+if [ -d "$project_skills" ]; then
+    count=$(find "$project_skills" -maxdepth 1 -mindepth 1 -type d | wc -l | tr -d ' ')
+    echo "当前项目: $count 个技能已安装"
+    echo "路径: $project_skills"
+else
+    echo "当前项目: 未安装技能"
+fi
+```
+
+**Windows (PowerShell)：**
 
 ```powershell
 $projectSkills = "$env:CLAUDE_PROJECT_DIR\.claude\skills"
@@ -53,9 +110,9 @@ if (Test-Path $projectSkills) {
 }
 ```
 
-### Step 4：输出状态面板
+### Step 5：输出状态面板
 
-```
+```text
 ╔══════════════════════════════════════════╗
 ║         📊 技能生态健康状态               ║
 ╠══════════════════════════════════════════╣
@@ -78,7 +135,7 @@ if (Test-Path $projectSkills) {
 ╚══════════════════════════════════════════╝
 ```
 
-### Step 5：给出建议
+### Step 6：给出建议
 
 根据状态给出操作建议：
 - 源有更新而仓库未同步 → 建议 `/skills-sync`

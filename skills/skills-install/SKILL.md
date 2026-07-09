@@ -11,16 +11,21 @@ description: "Install skills from the repository to the current project."
 
 用户输入 `/skills-install` 或说"安装技能"、"部署技能"、"install skills"、"给这个项目装技能"。
 
-## 仓库位置
+## 仓库定位
 
-默认技能仓库路径：`F:\AICode\skillsManage`
+技能仓库路径按优先级查找：
+1. 用户指定的路径（通过参数或对话）
+2. 当前工作目录如果包含 `skills/` 和 `skill-catalog.yaml`
+3. 回退询问用户
+
+**不要硬编码任何路径。**
 
 ## 参数
 
 用户可指定：
 - `/skills-install` — 安装全部技能到当前项目
 - `/skills-install --select gsap-core,docx,pdf` — 选择性安装
-- `/skills-install --target F:\OtherProject` — 安装到指定项目
+- `/skills-install --target /path/to/project` — 安装到指定项目
 - `/skills-install --with-hooks` — 同时安装 hooks
 
 ## 执行流程
@@ -40,7 +45,16 @@ description: "Install skills from the repository to the current project."
 5. 动画类 (gsap-* 8 个)
 6. 自定义选择
 
-### Step 3：执行安装
+### Step 3：检测操作系统并执行安装
+
+**Linux / macOS (Bash)：**
+
+```bash
+cd <repo_path>
+bash ./scripts/install.sh <target_path> [--skills <list>] [--with-hooks] [--force]
+```
+
+**Windows (PowerShell)：**
 
 ```powershell
 Set-Location <repo_path>
@@ -55,5 +69,5 @@ Set-Location <repo_path>
 
 ## 注意事项
 
-- 安装会备份已有技能到 `.claude\skills\.backup\`
+- 安装会备份已有技能到 `.claude/skills/.backup/`
 - 如果目标项目已有同名技能且用户未加 `--force`，先展示差异再确认

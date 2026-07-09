@@ -7,11 +7,19 @@ description: "Manage the Claude Code skills repository — sync, install, status
 
 管理 Claude Code 技能仓库的日常操作。当用户提到"同步技能"、"更新技能"、"安装技能"、"检查技能"时自动触发。
 
-## 仓库位置
+## 仓库定位
 
-默认技能仓库路径：`F:\AICode\skillsManage`
+技能仓库路径按优先级查找：
+1. 用户指定的路径（通过参数或对话）
+2. 当前工作目录如果包含 `skills/` 和 `skill-catalog.yaml`
+3. 回退询问用户
 
-如果仓库在其他位置，在首次使用时告知 AI 正确路径。
+**不要硬编码任何路径。** 检测操作系统并使用对应的脚本：
+
+| 操作系统 | 同步脚本 | 安装脚本 |
+|---------|---------|---------|
+| Windows (PowerShell) | `scripts/sync-from-source.ps1` | `scripts/install.ps1` |
+| Linux/macOS (Bash) | `scripts/sync-from-source.sh` | `scripts/install.sh` |
 
 ## 命令
 
@@ -31,4 +39,4 @@ description: "Manage the Claude Code skills repository — sync, install, status
 
 ### 规则 2：新项目自动建议安装
 
-当在未安装技能的项目中开始工作时，主动建议运行 `/skills-install`。
+在未安装技能的项目中开始工作时，主动建议运行 `/skills-install`。

@@ -11,14 +11,19 @@ description: "Sync skills between ~/.claude/skills/ (global) and the repository.
 
 用户输入 `/skills-sync` 或说"同步技能"、"更新技能仓库"、"sync skills"。
 
-## 仓库位置
+## 仓库定位
 
-默认技能仓库路径：`F:\AICode\skillsManage`
+技能仓库路径按优先级查找：
+1. 用户指定的路径（通过参数或对话）
+2. 当前工作目录如果包含 `skills/` 和 `skill-catalog.yaml`
+3. 回退询问用户
+
+**不要硬编码任何路径。**
 
 ## 参数
 
 - `/skills-sync` — 同步全局 skills（默认）
-- `/skills-sync --scope project --target F:\OtherProject` — 同步指定项目
+- `/skills-sync --scope project --target /path/to/project` — 同步指定项目
 - `/skills-sync --dry-run` — 仅预览，不执行
 - `/skills-sync --mode push` — 把全局的改动推送到仓库
 
@@ -26,8 +31,8 @@ description: "Sync skills between ~/.claude/skills/ (global) and the repository.
 
 ### Step 1：定位仓库
 
-- 默认路径：`F:\AICode\skillsManage`
-- 如果不存在，询问用户仓库路径
+- 如果当前目录包含 `skills/` 和 `skill-catalog.yaml`，使用当前目录
+- 否则询问用户仓库路径
 
 ### Step 2：检查源目录
 
@@ -45,16 +50,26 @@ description: "Sync skills between ~/.claude/skills/ (global) and the repository.
 
 ### Step 4：确认并执行
 
-用户确认后执行同步：
+根据操作系统选择对应的脚本：
+
+**Linux / macOS (Bash)：**
+
+```bash
+cd <repo_path>
+bash ./scripts/sync-from-source.sh [--dry-run] [--auto-commit] [--force]
+```
+
+**Windows (PowerShell)：**
+
 ```powershell
 Set-Location <repo_path>
-.\scripts\sync.ps1 [-Scope global|project] [-TargetPath <path>] [-Mode Pull|Push] [-DryRun] [-Force]
+.\scripts\sync-from-source.ps1 [-DryRun] [-AutoCommit] [-Force]
 ```
 
 ### Step 5：推送到远程（Push 模式时）
 
-```powershell
-Set-Location <repo_path>
+```bash
+cd <repo_path>
 git push origin master
 ```
 

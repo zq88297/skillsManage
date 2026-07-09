@@ -11,9 +11,14 @@ description: "Show skill ecosystem health — repo, source, and project installa
 
 用户输入 `/skills-status` 或说"技能状态"、"检查技能"、"skills status"。
 
-## 仓库位置
+## 仓库定位
 
-默认技能仓库路径：`F:\AICode\skillsManage`
+技能仓库路径按优先级查找：
+1. 用户指定的路径（通过参数或对话）
+2. 当前工作目录如果包含 `skills/` 和 `skill-catalog.yaml`
+3. 回退询问用户
+
+**不要硬编码任何路径。**
 
 ## 执行流程
 

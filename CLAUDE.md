@@ -68,35 +68,73 @@ Each skill has its own semver in `skill-catalog.yaml`.
 ## Common Operations
 
 ### Installing skills to a project
+
+```bash
+# Linux/macOS — Full install (all 20 skills)
+bash ./scripts/install.sh /path/to/project
+
+# Linux/macOS — Selective install
+bash ./scripts/install.sh /path/to/project --skills project-workflow,gsap-core
+
+# Linux/macOS — With hooks
+bash ./scripts/install.sh /path/to/project --with-hooks
+```
+
 ```powershell
-# Full install (all 20 skills)
+# Windows — Full install (all 20 skills)
 .\scripts\install.ps1 -TargetPath F:\MyProject
 
-# Selective install by category
+# Windows — Selective install
 .\scripts\install.ps1 -TargetPath F:\MyProject -Skills project-workflow,gsap-core
 
-# With hooks
+# Windows — With hooks
 .\scripts\install.ps1 -TargetPath F:\MyProject -WithHooks
 ```
 
-### Syncing
+### Syncing (from live installation to repo)
+
+```bash
+# Linux/macOS — Preview changes
+bash ./scripts/sync-from-source.sh --dry-run
+
+# Linux/macOS — Pull and auto-commit
+bash ./scripts/sync-from-source.sh --auto-commit --force
+```
+
 ```powershell
-.\scripts\sync.ps1 -TargetPath F:\MyProject -DryRun     # Preview
-.\scripts\sync.ps1 -TargetPath F:\MyProject             # Pull
-.\scripts\sync.ps1 -TargetPath F:\MyProject -Mode Push  # Push back
+# Windows — Preview changes
+.\scripts\sync-from-source.ps1 -DryRun
+
+# Windows — Pull and auto-commit
+.\scripts\sync-from-source.ps1 -AutoCommit -Force
 ```
 
 ### Creating a new skill
+
+```bash
+# Linux/macOS
+bash ./scripts/new-skill.sh --name "my-skill" --description "Does X when Y"
+```
+
 ```powershell
+# Windows
 .\scripts\new-skill.ps1 -Name "my-skill" -Description "Does X when Y" -Dependencies session-context
 ```
 
 ### Validating
+
+```bash
+# Linux/macOS
+bash ./scripts/validate.sh   # if available, otherwise use PowerShell
+```
+
 ```powershell
+# Windows
 .\scripts\validate.ps1
 ```
 
 ### Exporting for other agents
+
 ```powershell
 .\scripts\export-cursor.ps1 -OutputPath F:\MyProject
 ```
@@ -114,8 +152,8 @@ Each skill has its own semver in `skill-catalog.yaml`.
 ## Key Files
 - `skill-catalog.yaml` — Complete manifest: 20 skills, versions, layers, dependencies
 - `skills/*/SKILL.md` — Canonical skill definitions (400+ total files)
-- `scripts/install.ps1` — Deploy with dependency resolution (PowerShell)
-- `scripts/install.sh` — Deploy with dependency resolution (Unix)
-- `scripts/sync.ps1` — Bidirectional sync with backup
+- `scripts/install.ps1` / `scripts/install.sh` — Deploy with dependency resolution (Windows / Unix)
+- `scripts/sync-from-source.ps1` / `scripts/sync-from-source.sh` — Pull from live `~/.claude/skills/` into repo (Windows / Unix)
+- `scripts/sync.ps1` — Bidirectional sync with backup (Windows)
 - `llms.txt` — GSAP skills index for AI agents
 - `session-context.skill` — Packaged skill archive (ZIP format)

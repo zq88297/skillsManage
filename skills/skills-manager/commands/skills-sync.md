@@ -14,27 +14,47 @@
 
 ### Step 1：定位仓库
 
-- 默认路径：`F:\AICode\skillsManage`
-- 如果不存在，询问用户仓库路径
-- 如果用户之前指定过其他路径，使用那个路径
+- 如果当前目录包含 `skills/` 和 `skill-catalog.yaml`，使用当前目录
+- 否则询问用户仓库路径
+- **不要硬编码任何路径**
 
 ### Step 2：检查源目录
 
-- 验证 `$env:USERPROFILE\.claude\skills\` 存在
-- 列出源目录中的技能数量和名称
+验证 `~/.claude/skills/` 存在并列出技能数量。
 
-### Step 3：执行同步（Dry Run 模式）
+### Step 3：检测操作系统并执行同步
 
-如果用户指定了 `--dry-run` 或只是询问状态：
+根据操作系统选择对应的脚本：
+
+**Linux / macOS (Bash)：**
+
+```bash
+cd <repo_path>
+bash ./scripts/sync-from-source.sh --dry-run
+```
+
+**Windows (PowerShell)：**
+
 ```powershell
 Set-Location <repo_path>
 .\scripts\sync-from-source.ps1 -DryRun
 ```
+
 将输出结果展示给用户：哪些技能是新的、变更的、相同的。
 
 ### Step 4：执行同步（完整模式）
 
 如果用户确认同步：
+
+**Linux / macOS：**
+
+```bash
+cd <repo_path>
+bash ./scripts/sync-from-source.sh --auto-commit --force
+```
+
+**Windows：**
+
 ```powershell
 Set-Location <repo_path>
 .\scripts\sync-from-source.ps1 -AutoCommit -Force
@@ -42,14 +62,14 @@ Set-Location <repo_path>
 
 ### Step 5：推送到远程
 
-```powershell
-Set-Location <repo_path>
+```bash
+cd <repo_path>
 git push origin master
 ```
 
 ### Step 6：报告结果
 
-```
+```text
 ✅ 技能同步完成
 - 仓库：<repo_path>
 - 新增：N 个技能
