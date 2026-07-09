@@ -1,39 +1,34 @@
 <#
 .SYNOPSIS
-    Sync skills FROM the live Claude Code installation (~/.claude/skills/)
-    INTO this repository. Detects new, modified, and removed skills.
+    双向同步 ~/.claude/skills/ 和 Git 仓库。
 
 .DESCRIPTION
-    This is the "pull from source" script for continuous maintenance. When
-    Claude Code updates built-in skills (like impeccable, gsap, etc.) or you
-    install new ones, this script pulls those changes into the repo.
-
-    Workflow:
-    1. Compares ~/.claude/skills/ against skills/
-    2. Shows what's added, changed, or removed
-    3. Copies updated files into the repo
-    4. Optionally auto-commits with a changelog message
+    流程：
+    1. git pull 拉取 GitHub 最新
+    2. 比较 ~/.claude/skills/ 和 repo/skills/
+    3. 本地缺少的 → 从仓库复制到本地
+    4. 本地多出来的 → 复制到仓库
+    5. 自动提交并推送
 
 .PARAMETER SourcePath
-    Path to the live Claude Code skills directory.
-    Default: ~/.claude/skills/
+    本地技能目录。默认: ~/.claude/skills/
 
 .PARAMETER AutoCommit
-    Automatically commit changes with a generated message.
+    自动提交并推送到远程。
 
 .PARAMETER DryRun
-    Show what would change without making changes.
+    仅预览，不执行修改。
 
 .PARAMETER Force
-    Skip confirmation prompt.
+    跳过确认提示。
 
 .EXAMPLE
     .\sync-from-source.ps1 -DryRun
-    Preview what's changed in the live installation.
+    预览同步差异。
 
 .EXAMPLE
     .\sync-from-source.ps1 -AutoCommit
-    Pull all changes from live skills and auto-commit.
+    双向同步并自动提交推送。
 #>
 
 param(
@@ -52,50 +47,59 @@ param(
 
 $ErrorActionPreference = "Stop"
 $RepoRoot = Split-Path -Parent (Split-Path -Parent $PSCommandPath)
-$DestSkillsDir = Join-Path $RepoRoot "skills"
+$RepoSkillsDir = Join-Path $RepoRoot "skills"
 $CatalogFile = Join-Path $RepoRoot "skill-catalog.yaml"
 
+# 验证目录
 if (-not (Test-Path $SourcePath)) {
-    Write-Error "Source skills directory not found: $SourcePath"
-    Write-Error "Are you sure Claude Code is installed?"
+    Write-Error "本地技能目录不存在: $SourcePath"
+    Write-Error "请确认 Claude Code 已安装。"
     exit 1
 }
-$SourcePath = (Resolve-Path $SourcePath).Path
+if (-not (Test-Path $RepoSkillsDir)) {
+    Write-Error "仓库技能目录不存在: $RepoSkillsDir"
+    exit 1
+}
 
-Write-Host "=== Sync from Source ===" -ForegroundColor Cyan
-Write-Host "Source: $SourcePath"
-Write-Host "Repo:   $DestSkillsDir"
-if ($DryRun) { Write-Host "DRY RUN — no changes will be made" -ForegroundColor Yellow }
+Write-Host "=== 技能双向同步 ===" -ForegroundColor Cyan
+Write-Host "本地: $SourcePath"
+Write-Host "仓库: $RepoSkillsDir"
+if ($DryRun) { Write-Host "【预览模式】不会执行任何修改" -ForegroundColor Yellow }
 Write-Host ""
 
-# --- Collect skill directories from source (exclude non-skill files) ---
-$sourceSkills = @{}
-Get-ChildItem -Directory $SourcePath | ForEach-Object {
-    $name = $_.Name
-    if (Test-Path (Join-Path $_.FullName "SKILL.md")) {
-        $sourceSkills[$name] = $_.FullName
+# ============================================================
+# Step 1: git pull 拉取最新
+# ============================================================
+if (-not $DryRun) {
+    Write-Host "--- Step 1: 从 GitHub 拉取最新 ---" -ForegroundColor Cyan
+    Set-Location $RepoRoot
+    if (Test-Path (Join-Path $RepoRoot ".git")) {
+        try {
+            $remoteUrl = git remote get-url origin 2>$null
+            if ($remoteUrl) {
+                Write-Host "执行 git pull..."
+                git pull --rebase origin master 2>$null
+                if (-not $?) { Write-Host "警告: git pull 失败，将继续使用本地仓库" -ForegroundColor Yellow }
+            } else {
+                Write-Host "未配置远程仓库，跳过 git pull"
+            }
+        } catch {
+            Write-Host "git pull 跳过" -ForegroundColor Yellow
+        }
     }
+    Write-Host ""
 }
 
-$repoSkills = @{}
-if (Test-Path $DestSkillsDir) {
-    Get-ChildItem -Directory $DestSkillsDir | ForEach-Object {
-        $repoSkills[$_.Name] = $_.FullName
-    }
-}
-
-$allNames = @($sourceSkills.Keys) + @($repoSkills.Keys) | Select-Object -Unique | Sort-Object
-
-$newSkills = @()
-$removedSkills = @()
-$modifiedSkills = @()
-$identicalSkills = @()
-
+# ============================================================
+# 计算目录哈希
+# ============================================================
 function Get-SkillHash {
     param([string]$Path)
+    if (-not (Test-Path $Path)) { return "" }
     $files = Get-ChildItem -Recurse -File $Path -ErrorAction SilentlyContinue | Sort-Object FullName
     $combined = ($files | ForEach-Object {
-        "$($_.FullName.Substring($Path.Length)):$(Get-FileHash -Path $_.FullName -Algorithm SHA256).Hash"
+        $rel = $_.FullName.Substring($Path.Length + 1)
+        "$rel:$($_.Name):$([System.IO.File]::ReadAllBytes($_.FullName).Length)"
     }) -join "`n"
     $hash = [System.Security.Cryptography.SHA256]::Create().ComputeHash(
         [System.Text.Encoding]::UTF8.GetBytes($combined)
@@ -103,111 +107,192 @@ function Get-SkillHash {
     return [BitConverter]::ToString($hash) -replace '-', ''
 }
 
+# ============================================================
+# Step 2: 收集技能目录
+# ============================================================
+$localSkills = @{}
+Get-ChildItem -Directory $SourcePath -ErrorAction SilentlyContinue | ForEach-Object {
+    if (Test-Path (Join-Path $_.FullName "SKILL.md")) {
+        $localSkills[$_.Name] = $_.FullName
+    }
+}
+
+$repoSkills = @{}
+Get-ChildItem -Directory $RepoSkillsDir -ErrorAction SilentlyContinue | ForEach-Object {
+    if (Test-Path (Join-Path $_.FullName "SKILL.md")) {
+        $repoSkills[$_.Name] = $_.FullName
+    }
+}
+
+# ============================================================
+# Step 3: 比较差异
+# ============================================================
+$pullSkills = @()    # 仓库有、本地没有 → 从仓库拉取到本地
+$pushSkills = @()    # 本地有、仓库没有 → 从本地推送到仓库
+$updateSkills = @()  # 都有但不同 → 以仓库为准更新本地
+$identicalSkills = @()
+
+$allNames = @($localSkills.Keys) + @($repoSkills.Keys) | Select-Object -Unique | Sort-Object
+
 foreach ($name in $allNames) {
-    $inSource = $sourceSkills.ContainsKey($name)
+    $inLocal = $localSkills.ContainsKey($name)
     $inRepo = $repoSkills.ContainsKey($name)
 
-    if ($inSource -and -not $inRepo) {
-        $newSkills += $name
+    if (-not $inLocal -and $inRepo) {
+        $pullSkills += $name
     }
-    elseif (-not $inSource -and $inRepo) {
-        # Skill exists in repo but not in source — skip (user may have source configured differently)
-        # Don't auto-delete; user would need to manually remove from repo
+    elseif ($inLocal -and -not $inRepo) {
+        $pushSkills += $name
     }
-    elseif ($inSource -and $inRepo) {
-        # Compare file hashes
-        $srcHash = Get-SkillHash -Path $sourceSkills[$name]
+    elseif ($inLocal -and $inRepo) {
+        $localHash = Get-SkillHash -Path $localSkills[$name]
         $repoHash = Get-SkillHash -Path $repoSkills[$name]
-        if ($srcHash -ne $repoHash) {
-            $modifiedSkills += $name
-        }
-        else {
+        if ($localHash -ne $repoHash) {
+            $updateSkills += $name
+        } else {
             $identicalSkills += $name
         }
     }
 }
 
-# --- Report ---
-$totalChanges = $newSkills.Count + $modifiedSkills.Count
+# ============================================================
+# Step 4: 报告差异
+# ============================================================
+$totalChanges = $pullSkills.Count + $pushSkills.Count + $updateSkills.Count
 
 if ($totalChanges -eq 0) {
-    Write-Host "All skills are in sync. Nothing to do." -ForegroundColor Green
+    Write-Host "✅ 所有技能已同步，无需操作。" -ForegroundColor Green
     exit 0
 }
 
-if ($newSkills.Count -gt 0) {
-    Write-Host "NEW ($($newSkills.Count) skills):" -ForegroundColor Green
-    $newSkills | ForEach-Object {
-        $count = (Get-ChildItem -Recurse -File $sourceSkills[$_]).Count
-        Write-Host "  + $_ ($count files)" -ForegroundColor Green
+Write-Host "--- 差异分析 ---" -ForegroundColor Cyan
+
+if ($pullSkills.Count -gt 0) {
+    Write-Host "📥 需要从仓库拉取到本地 ($($pullSkills.Count) 个):" -ForegroundColor Green
+    $pullSkills | ForEach-Object {
+        $count = (Get-ChildItem -Recurse -File $repoSkills[$_]).Count
+        Write-Host "  + $_ ($count 个文件)" -ForegroundColor Green
     }
 }
-if ($modifiedSkills.Count -gt 0) {
-    Write-Host "MODIFIED ($($modifiedSkills.Count) skills):" -ForegroundColor Yellow
-    $modifiedSkills | ForEach-Object { Write-Host "  ~ $_" -ForegroundColor Yellow }
+
+if ($pushSkills.Count -gt 0) {
+    Write-Host "📤 需要从本地推送到仓库 ($($pushSkills.Count) 个):" -ForegroundColor Yellow
+    $pushSkills | ForEach-Object {
+        $count = (Get-ChildItem -Recurse -File $localSkills[$_]).Count
+        Write-Host "  + $_ ($count 个文件)" -ForegroundColor Yellow
+    }
 }
-Write-Host "IDENTICAL ($($identicalSkills.Count) skills)" -ForegroundColor DarkGray
+
+if ($updateSkills.Count -gt 0) {
+    Write-Host "🔄 需要更新本地技能（以仓库为准）($($updateSkills.Count) 个):" -ForegroundColor Cyan
+    $updateSkills | ForEach-Object { Write-Host "  ~ $_" -ForegroundColor Cyan }
+}
+
+Write-Host "✅ 已同步 ($($identicalSkills.Count) 个)" -ForegroundColor DarkGray
 Write-Host ""
 
 if ($DryRun) { exit 0 }
 
-# --- Confirm ---
-if (-not $Force -and -not $AutoCommit) {
-    $response = Read-Host "Sync these changes into the repo? [y/N]"
+# ============================================================
+# Step 5: 确认
+# ============================================================
+if (-not $Force) {
+    Write-Host "--- 操作确认 ---" -ForegroundColor Cyan
+    Write-Host "将执行以下操作:"
+    if ($pullSkills.Count -gt 0) { Write-Host "  从仓库拉取 $($pullSkills.Count) 个技能到本地" }
+    if ($pushSkills.Count -gt 0) { Write-Host "  从本地推送 $($pushSkills.Count) 个技能到仓库" }
+    if ($updateSkills.Count -gt 0) { Write-Host "  更新本地 $($updateSkills.Count) 个技能（以仓库为准）" }
+    Write-Host ""
+    $response = Read-Host "确认执行? [y/N]"
     if ($response -notmatch '^[yY]') {
-        Write-Host "Cancelled."
+        Write-Host "已取消。"
         exit 0
     }
 }
 
-# --- Apply ---
+# ============================================================
+# Step 6: 执行同步
+# ============================================================
+Write-Host ""
+Write-Host "--- 执行同步 ---" -ForegroundColor Cyan
+
 $backupDir = Join-Path $RepoRoot ".sync-backup\$(Get-Date -Format 'yyyyMMdd-HHmmss')"
-New-Item -ItemType Directory -Force -Path $backupDir | Out-Null
 
-# Copy new skills
-foreach ($name in $newSkills) {
-    $src = $sourceSkills[$name]
-    $dst = Join-Path $DestSkillsDir $name
-    Copy-Item -Recurse -Force $src $dst
-    Write-Host "  Copied: $name" -ForegroundColor Green
+# 6a: 从仓库拉取到本地
+foreach ($name in $pullSkills) {
+    $dst = Join-Path $SourcePath $name
+    New-Item -ItemType Directory -Force -Path $dst | Out-Null
+    Copy-Item -Recurse -Force (Join-Path $repoSkills[$name] "\*") $dst
+    Write-Host "  📥 已拉取: $name → 本地" -ForegroundColor Green
 }
 
-# Update modified skills (backup old first)
-foreach ($name in $modifiedSkills) {
-    $repoPath = $repoSkills[$name]
-    # Backup
-    Copy-Item -Recurse -Force $repoPath (Join-Path $backupDir $name)
-    # Remove old, copy new
-    Remove-Item -Recurse -Force $repoPath
-    Copy-Item -Recurse -Force $sourceSkills[$name] $repoPath
-    Write-Host "  Updated: $name" -ForegroundColor Yellow
+# 6b: 从本地推送到仓库
+foreach ($name in $pushSkills) {
+    $dst = Join-Path $RepoSkillsDir $name
+    New-Item -ItemType Directory -Force -Path $dst | Out-Null
+    Copy-Item -Recurse -Force (Join-Path $localSkills[$name] "\*") $dst
+    Write-Host "  📤 已推送: $name → 仓库" -ForegroundColor Yellow
 }
 
-Write-Host "Backup at: $backupDir" -ForegroundColor DarkGray
+# 6c: 以仓库为准更新本地
+foreach ($name in $updateSkills) {
+    # 备份本地版本
+    if (Test-Path (Join-Path $SourcePath $name)) {
+        New-Item -ItemType Directory -Force -Path (Join-Path $backupDir $name) | Out-Null
+        Copy-Item -Recurse -Force (Join-Path $SourcePath $name "\*") (Join-Path $backupDir $name)
+    }
+    # 用仓库版本覆盖本地
+    $dst = Join-Path $SourcePath $name
+    Remove-Item -Recurse -Force $dst -ErrorAction SilentlyContinue
+    New-Item -ItemType Directory -Force -Path $dst | Out-Null
+    Copy-Item -Recurse -Force (Join-Path $repoSkills[$name] "\*") $dst
+    Write-Host "  🔄 已更新: $name（以仓库为准）" -ForegroundColor Cyan
+}
 
-# --- Auto-commit if requested ---
+if (Test-Path $backupDir) {
+    Write-Host "  备份目录: $backupDir" -ForegroundColor DarkGray
+}
+
+# ============================================================
+# Step 7: 自动提交并推送
+# ============================================================
 if ($AutoCommit) {
+    Write-Host ""
+    Write-Host "--- 提交到 Git ---" -ForegroundColor Cyan
     Set-Location $RepoRoot
-    $commitMsg = "sync: pull updates from live installation`n`n"
-    if ($newSkills.Count -gt 0) {
-        $commitMsg += "Added: $($newSkills -join ', ')`n"
-    }
-    if ($modifiedSkills.Count -gt 0) {
-        $commitMsg += "Modified: $($modifiedSkills -join ', ')`n"
-    }
 
-    # Also update skill-catalog.yaml timestamp
-    $catalogContent = Get-Content $CatalogFile -Raw -Encoding UTF8
-    $today = Get-Date -Format 'yyyy-MM-dd'
-    $catalogContent = $catalogContent -replace 'last_updated:\s*".*"', "last_updated: `"$today`""
-    Set-Content -Path $CatalogFile -Value $catalogContent -Encoding UTF8
+    $commitMsg = "sync: 双向同步技能`n`n"
+    if ($pullSkills.Count -gt 0) { $commitMsg += "从仓库拉取: $($pullSkills -join ', ')`n" }
+    if ($pushSkills.Count -gt 0) { $commitMsg += "推送到仓库: $($pushSkills -join ', ')`n" }
+    if ($updateSkills.Count -gt 0) { $commitMsg += "更新本地: $($updateSkills -join ', ')`n" }
+
+    # 更新 catalog 时间戳
+    if (Test-Path $CatalogFile) {
+        $catalogContent = Get-Content $CatalogFile -Raw -Encoding UTF8
+        $today = Get-Date -Format 'yyyy-MM-dd'
+        $catalogContent = $catalogContent -replace 'last_updated:\s*".*"', "last_updated: `"$today`""
+        Set-Content -Path $CatalogFile -Value $catalogContent -Encoding UTF8
+    }
 
     git add -A
-    git commit -m $commitMsg
+    git commit -m $commitMsg 2>$null
+    if (-not $?) { Write-Host "没有需要提交的更改" }
+
     Write-Host ""
-    Write-Host "Committed: $commitMsg" -ForegroundColor Green
-    Write-Host "Run 'git push' to push changes to remote." -ForegroundColor Yellow
+    Write-Host "推送到 GitHub..." -ForegroundColor Cyan
+    git push origin master 2>$null
+    if ($?) {
+        Write-Host "  ✅ 推送成功" -ForegroundColor Green
+    } else {
+        Write-Host "  ⚠️ 推送失败（可能没网络），请稍后手动执行: git push" -ForegroundColor Yellow
+    }
 }
 
 Write-Host ""
-Write-Host "=== Sync Complete ===" -ForegroundColor Cyan
+Write-Host "=== 同步完成 ===" -ForegroundColor Cyan
+Write-Host "本地: $SourcePath"
+Write-Host "仓库: $RepoSkillsDir"
+if ($pullSkills.Count -gt 0) { Write-Host "📥 拉取: $($pullSkills.Count) 个" -ForegroundColor Green }
+if ($pushSkills.Count -gt 0) { Write-Host "📤 推送: $($pushSkills.Count) 个" -ForegroundColor Yellow }
+if ($updateSkills.Count -gt 0) { Write-Host "🔄 更新: $($updateSkills.Count) 个" -ForegroundColor Cyan }
+Write-Host "✅ 已同步: $($identicalSkills.Count) 个" -ForegroundColor DarkGray

@@ -1,11 +1,11 @@
 ---
 name: skills-sync
-description: "Sync skills between ~/.claude/skills/ (global) and the repository."
+description: "双向同步 ~/.claude/skills/ 和 GitHub 仓库。"
 ---
 
 # Skills Sync
 
-你是技能同步助手。在全局技能目录 (`~/.claude/skills/`) 和仓库之间同步技能。
+你是技能双向同步助手。在本地全局技能目录 (`~/.claude/skills/`) 和 GitHub 仓库之间进行双向同步。
 
 ## 触发
 
@@ -20,12 +20,24 @@ description: "Sync skills between ~/.claude/skills/ (global) and the repository.
 
 **不要硬编码任何路径。**
 
+## 同步逻辑
+
+```text
+GitHub 仓库  ←git pull→  本地仓库  ←比较/复制→  ~/.claude/skills/
+```
+
+1. **git pull** — 从 GitHub 拉取仓库最新版本
+2. **比较** — 对比 `~/.claude/skills/` 和仓库中的技能
+3. **拉取** — 仓库有但本地没有的 → 复制到本地
+4. **推送** — 本地有但仓库没有的 → 复制到仓库
+5. **更新** — 都有但内容不同 → 以仓库为准更新本地
+6. **提交推送** — 自动 commit 并 push 到 GitHub
+
 ## 参数
 
-- `/skills-sync` — 同步全局 skills（默认）
-- `/skills-sync --scope project --target /path/to/project` — 同步指定项目
-- `/skills-sync --dry-run` — 仅预览，不执行
-- `/skills-sync --mode push` — 把全局的改动推送到仓库
+- `/skills-sync` — 执行双向同步
+- `/skills-sync --dry-run` — 仅预览差异，不执行
+- `/skills-sync --force` — 跳过确认直接执行
 
 ## 执行流程
 
@@ -34,53 +46,54 @@ description: "Sync skills between ~/.claude/skills/ (global) and the repository.
 - 如果当前目录包含 `skills/` 和 `skill-catalog.yaml`，使用当前目录
 - 否则询问用户仓库路径
 
-### Step 2：检查源目录
+### Step 2：检查本地目录
 
-- 默认检查 `~/.claude/skills/`（全局）
-- 如果指定了 `--scope project`，检查 `<target>/.claude/skills/`
-- 列出源目录中的技能数量和名称
-- 对比仓库中的技能，找出新增、更新、未变化的
+验证 `~/.claude/skills/` 存在并列出技能数量。
 
-### Step 3：预览变更
-
-向用户展示将要同步的内容：
-- 哪些技能是新的
-- 哪些技能有更新
-- 哪些技能已删除
-
-### Step 4：确认并执行
-
-根据操作系统选择对应的脚本：
+### Step 3：检测操作系统并执行同步
 
 **Linux / macOS (Bash)：**
 
 ```bash
 cd <repo_path>
-bash ./scripts/sync-from-source.sh [--dry-run] [--auto-commit] [--force]
+bash ./scripts/sync-from-source.sh --dry-run
 ```
 
 **Windows (PowerShell)：**
 
 ```powershell
 Set-Location <repo_path>
-.\scripts\sync-from-source.ps1 [-DryRun] [-AutoCommit] [-Force]
+.\scripts\sync-from-source.ps1 -DryRun
 ```
 
-### Step 5：推送到远程（Push 模式时）
+### Step 4：执行同步（完整模式）
+
+如果用户确认同步：
+
+**Linux / macOS：**
 
 ```bash
 cd <repo_path>
-git push origin master
+bash ./scripts/sync-from-source.sh --auto-commit --force
 ```
 
-### Step 6：报告结果
+**Windows：**
 
-展示同步摘要：新增 N 个，更新 M 个，已推送到 remote。
+```powershell
+Set-Location <repo_path>
+.\scripts\sync-from-source.ps1 -AutoCommit -Force
+```
+
+### Step 5：报告结果
+
+展示同步摘要：拉取 N 个、推送 M 个、更新 K 个、已同步 J 个。
 
 ---
 
 ## 注意事项
 
 - 同步前让用户确认（除非用户明确说"直接执行"）
+- 冲突时以仓库为准（仓库是版本控制的真相来源）
+- 本地独有的技能会自动推送到仓库并提交
 - 如果 git push 失败（没网络），提醒用户稍后手动 push
-- 如果源目录不存在，告知用户 Claude Code 可能未安装
+- 如果本地技能目录不存在，告知用户 Claude Code 可能未安装
