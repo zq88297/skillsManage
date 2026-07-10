@@ -1,4 +1,0 @@
-interface:
-  display_name: "SKIIS Context"
-  short_description: "Persist AI coding context across sessions"
-  default_prompt: "Use $skiis-context to load or save the current coding task context."
