@@ -1,128 +1,83 @@
-﻿# Session Context Save
+# Session Save
 
-You are the context persistence manager. Your job is to extract key information
-from the current conversation and write it to structured files so a fresh
-session can pick up where this one left off.
+你是上下文持久化管理器。把当前会话中会影响后续工作的事实写入本地上下文。
 
-## Step 1: Determine save scope
+## 1. 保存范围
 
-Check `$ARGUMENTS` for scope hints from the user (e.g. "only current task",
-"save everything", "just the decisions"). If no scope is specified, ask the
-user what they want to save:
+默认保存全部：
 
-- **Current task progress** — what's done, in progress, and pending
-- **Technical decisions** — choices made and why
-- **Problems & pitfalls** — issues encountered and their solutions
-- **All of the above** (default)
+- 当前任务进度。
+- 下次继续步骤。
+- 关键文件清单。
+- 技术决策。
+- Bug/问题根因、修复、验证和预防。
+- 构建、测试、部署命令和结果。
+- 新增依赖、工具、端口、环境变量。
 
-If the user gave a scope in `$ARGUMENTS`, honor it without asking.
+如果用户指定范围，按用户范围保存。
 
-## Step 2: Read existing context files
+## 2. 选择上下文目录
 
-Check for and read these files (if they exist):
+按顺序选择：
 
-1. `.claude/context/current-task.md`
-2. `.claude/context/decisions.md`
-3. `.claude/context/pitfalls.md`
-4. `.claude/context/architecture.md`
+1. `.codex/context/`
+2. 已存在的 `.claude/context/`
+3. 二者都不存在时，创建 `.codex/context/`
 
-Also read `CLAUDE.md` if it exists, to understand project conventions.
+## 3. 写入规则
 
-## Step 3: Analyze the conversation
+### `current-task.md`
 
-Review the current conversation and extract:
-
-### Task progress (for `current-task.md`)
-
-- **Completed**: What has been finished — be specific: files created/modified,
-  functions written, bugs fixed. Use past tense.
-- **In progress**: What is actively being worked on right now, including its
-  current state and any blockers.
-- **Pending**: What still needs to be done, in priority order.
-- **Key context**: Interface formats, configuration values, special constraints,
-  environment details, port numbers, API endpoints — anything that would be
-  painful to reconstruct from scratch.
-
-Use `- [x]` for completed items, `- [ ]` for pending items.
-
-### Continuation plan (for `current-task.md` — **MUST include**)
-
-This is the **most important section for mid-task saves**. Without it, the
-next session won't know where to start. Write `## 🔜 下次继续` section:
+覆盖更新，必须包含：
 
 ```markdown
-## 🔜 下次继续
+> Last updated: YYYY-MM-DD HH:mm
 
-### 第一步
-{打开哪个文件、定位到哪个函数/行号、做什么}
-例如：打开 src/ike/negotiate.c，在 ike_handle_sa() 函数中继续实现超时重试逻辑
+## 已完成
+- [x] {已完成事项}
 
-### 当前状态
-{代码写到哪了、测试跑了吗、编译通过了吗}
-例如：主流程已写完，编译通过，但 handle_timeout() 回调还未注册
+## 进行中
+- [ ] {当前事项}
 
-### 关键约束
-{继续时需要注意的限制}
-例如：超时时间必须从配置文件读取，不能硬编码；需兼容 ikev1 和 ikev2
+## 待完成
+- [ ] {下一步事项}
 
-### 阻塞项
-{如果有外部依赖或等待确认的事项}
-例如：等待运维确认 keepalive 间隔参数
+## 关键上下文
+- {约束、环境、接口、命令}
+
+## 下次继续
+- 第一步：打开 {文件}，定位到 {函数/行号}，执行 {动作}
+- 当前状态：{测试/构建/运行状态}
+- 阻塞项：{如有}
+
+## 关键文件清单
+- {path}:{line} - {为什么重要}
 ```
 
-**要求：** 第一步必须具体到“打开 X 文件，定位到 Y 函数/行号，做 Z”。不是泛泛的“继续开发 XX 功能”。
+### `decisions.md`
 
-### Technical decisions (for `decisions.md`)
+追加新决策，不覆盖旧内容。只记录会影响后续维护的选择。
 
-For each meaningful decision made in this conversation, capture:
+### `pitfalls.md`
 
-- **Decision ID**: `YYYY-MM-DD-N` (e.g. `2026-06-01-1`)
-- **Context**: What problem were we solving?
-- **Options considered**: What alternatives were on the table?
-- **Choice**: What did we pick?
-- **Rationale**: Why this option over the others?
-- **Explicitly rejected**: What did we decide NOT to use, and why?
-- **Trade-offs**: What are we giving up with this choice?
+追加问题、根因、修复、验证和预防方式。Bug 修复必须总结是否为高发类型，以及如何通过提示词、流程、测试或监控降低复发。
 
-Append new decisions to the existing file — never overwrite old decisions.
+### `reference/`
 
-### Pitfalls (for `pitfalls.md`)
+保存稳定技术事实，例如接口格式、部署步骤、调试环境、协议约束。不要保存临时任务状态。
 
-For each problem encountered:
+## 4. 敏感信息
 
-- **Problem**: What happened? (symptoms)
-- **Root cause**: Why did it happen?
-- **Solution**: How was it fixed?
-- **Prevention**: How to avoid this in the future?
+- 不把密码、Token、私钥、Cookie 写入长期文件。
+- 远程调试临时凭据只可放在 `current-task.md`，任务结束时删除或脱敏。
 
-Append new pitfalls to the existing file — never overwrite old ones.
+## 5. 输出
 
-## Step 4: Write the files
+```markdown
+## 上下文已保存
 
-Create the `.claude/context/` directory if it doesn't exist. Then:
-
-- **`current-task.md`**: Overwrite with the updated task progress. Use a clear
-  structure with `## Completed`, `## In Progress`, `## Pending`, and
-  `## Key Context` sections. Include a `> Last updated: YYYY-MM-DD HH:MM`
-  blockquote at the top.
-- **`decisions.md`**: Append new decisions. If the file doesn't exist, create
-  it with a `# Technical Decisions` heading and an intro sentence.
-- **`pitfalls.md`**: Append new pitfalls. If the file doesn't exist, create it
-  with a `# Pitfalls & Lessons Learned` heading and an intro sentence.
-
-## Step 5: Report
-
-Summarize what was saved:
-
+- 任务进度：`{context}/current-task.md`
+- 新增决策：N 条
+- 新增踩坑：N 条
+- 下次继续：{文件 + 位置 + 动作}
 ```
-✅ Context saved
-
-| File | Action | Content |
-|------|--------|---------|
-| current-task.md | Updated | N completed, M pending tasks |
-| decisions.md | +N new | Decision YYYY-MM-DD-N: <summary> |
-| pitfalls.md | +N new | <problem summary> |
-
-💡 Next session, run /session-load to restore.
-```
-

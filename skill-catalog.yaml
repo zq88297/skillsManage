@@ -1,22 +1,23 @@
 ﻿# skill-catalog.yaml
-# Complete manifest of all 26 managed Claude Code skills.
+# Complete manifest of all managed Claude Code skills.
 # Used by install/sync/validate scripts for dependency resolution and metadata.
 
 catalog_version: "2.2"
-last_updated: "2026-07-07"
+last_updated: "2026-07-16"
 
 skills:
   # ==================================================================
   # Foundation Layer — auto-load, context, session persistence
   # ==================================================================
   session-context:
-    version: "2.1.0"
+    version: "2.2.0"
     display_name: "Session Context Manager"
     layer: foundation
     description: >
-      MUST trigger on EVERY conversation in a dev project. Auto-loads context
-      (task progress, decisions, pitfalls), cross-project task dispatch,
-      branch isolation, hooks management.
+      MUST trigger on every coding conversation in a dev project. Maintains
+      local session context under .codex/context or an existing .claude/context:
+      current task, decisions, pitfalls, architecture notes, health checks,
+      branch/module context, and cross-project task dispatch.
     dependencies: []
     commands:
       - context-check
@@ -41,6 +42,18 @@ skills:
     dependencies: []
     commands: []
     tags: [skill-creation, evaluation, optimization]
+
+  full-output-enforcement:
+    version: "1.0.0"
+    display_name: "Full Output Enforcement"
+    layer: meta
+    description: >
+      Enforce complete, unabridged output for tasks that require exhaustive code,
+      documents, or generated artifacts. Prevents placeholder output and manages
+      token-limit continuation cleanly.
+    dependencies: []
+    commands: []
+    tags: [output, completeness, generation]
 
   karpathy-guidelines:
     version: "1.0.0"
@@ -131,6 +144,61 @@ skills:
     commands: []
     tags: [visual-art, poster, design, png, pdf]
 
+  algorithmic-art:
+    version: "1.0.0"
+    display_name: "Algorithmic Art"
+    layer: design
+    description: >
+      Create generative and algorithmic art using p5.js, seeded randomness,
+      flow fields, particles, and interactive parameter exploration.
+    dependencies: []
+    commands: []
+    tags: [generative-art, p5js, particles, creative-coding]
+
+  brand-guidelines:
+    version: "1.0.0"
+    display_name: "Brand Guidelines"
+    layer: design
+    description: >
+      Apply Anthropic official brand colors, typography, and visual standards
+      to artifacts that need Anthropic look and feel.
+    dependencies: []
+    commands: []
+    tags: [brand, guidelines, typography, colors]
+
+  brandkit:
+    version: "1.0.0"
+    display_name: "Brand Kit"
+    layer: design
+    description: >
+      Create premium brand-guidelines boards, logo systems, identity decks, and
+      visual-world presentations with high-end visual direction.
+    dependencies: []
+    commands: []
+    tags: [brand, identity, logo, visual-design]
+
+  design-taste-frontend:
+    version: "1.0.0"
+    display_name: "Design Taste Frontend"
+    layer: design
+    description: >
+      Build non-templated, high-quality landing pages, portfolios, redesigns,
+      and frontend interfaces with stronger visual taste and real design systems.
+    dependencies: []
+    commands: []
+    tags: [frontend, ui-design, taste, landing-pages]
+
+  design-taste-frontend-v1:
+    version: "1.0.0"
+    display_name: "Design Taste Frontend V1"
+    layer: design
+    description: >
+      Original v1 frontend design taste skill retained for projects depending on
+      its exact behavior.
+    dependencies: []
+    commands: []
+    tags: [frontend, ui-design, legacy]
+
   frontend-design:
     version: "1.0.0"
     display_name: "Frontend Design"
@@ -143,6 +211,61 @@ skills:
     dependencies: []
     commands: []
     tags: [frontend, ui, design, react, html, css]
+
+  gpt-taste:
+    version: "1.0.0"
+    display_name: "GPT Taste"
+    layer: design
+    description: >
+      Advanced UX/UI and GSAP motion guidance for editorial layouts, structured
+      landing pages, high-variance compositions, and motion-heavy interfaces.
+    dependencies: []
+    commands: []
+    tags: [ui-design, gsap, motion, landing-pages]
+
+  high-end-visual-design:
+    version: "1.0.0"
+    display_name: "High-End Visual Design"
+    layer: design
+    description: >
+      Apply high-end agency design standards for typography, spacing, shadows,
+      cards, animation, and premium website polish.
+    dependencies: []
+    commands: []
+    tags: [visual-design, premium, typography, polish]
+
+  image-to-code:
+    version: "1.0.0"
+    display_name: "Image To Code"
+    layer: design
+    description: >
+      Generate or analyze design images first, then implement visually important
+      websites to closely match the selected design direction.
+    dependencies: []
+    commands: []
+    tags: [image-to-code, frontend, visual-implementation]
+
+  imagegen-frontend-mobile:
+    version: "1.0.0"
+    display_name: "Imagegen Frontend Mobile"
+    layer: design
+    description: >
+      Generate premium mobile app screen concepts and flows for iOS, Android,
+      and cross-platform products.
+    dependencies: []
+    commands: []
+    tags: [mobile, image-generation, app-design]
+
+  imagegen-frontend-web:
+    version: "1.0.0"
+    display_name: "Imagegen Frontend Web"
+    layer: design
+    description: >
+      Generate premium website design reference images for conversion-aware web
+      sections and frontend implementation direction.
+    dependencies: []
+    commands: []
+    tags: [web-design, image-generation, frontend]
 
   impeccable:
     version: "3.9.1"
@@ -157,6 +280,28 @@ skills:
     dependencies: []
     commands: []
     tags: [ui-design, ux-review, accessibility, theming, polish, critique]
+
+  industrial-brutalist-ui:
+    version: "1.0.0"
+    display_name: "Industrial Brutalist UI"
+    layer: design
+    description: >
+      Design raw mechanical interfaces with Swiss typographic print influence,
+      rigid grids, terminal aesthetics, and utilitarian visual systems.
+    dependencies: []
+    commands: []
+    tags: [ui-design, brutalist, dashboard, typography]
+
+  minimalist-ui:
+    version: "1.0.0"
+    display_name: "Minimalist UI"
+    layer: design
+    description: >
+      Create clean editorial interfaces with warm monochrome palettes,
+      typographic contrast, flat bento grids, and restrained visual styling.
+    dependencies: []
+    commands: []
+    tags: [ui-design, minimalist, editorial]
 
   ui-ux-pro-max:
     version: "1.0.0"
@@ -186,6 +331,28 @@ skills:
       - recommend
     tags: [react-bits, component-matching, design-to-code, animation, shadcn]
 
+  redesign-existing-projects:
+    version: "1.0.0"
+    display_name: "Redesign Existing Projects"
+    layer: design
+    description: >
+      Upgrade existing websites and apps to premium quality by auditing current
+      design, removing generic patterns, and preserving functionality.
+    dependencies: []
+    commands: []
+    tags: [redesign, frontend, ui-polish]
+
+  stitch-design-taste:
+    version: "1.0.0"
+    display_name: "Stitch Design Taste"
+    layer: design
+    description: >
+      Generate agent-friendly DESIGN.md files for Google Stitch with premium
+      anti-generic UI standards and semantic design guidance.
+    dependencies: []
+    commands: []
+    tags: [stitch, design-system, ui-design]
+
   # ==================================================================
   # Document Layer — Word, PDF, PowerPoint, Excel
   # ==================================================================
@@ -201,6 +368,17 @@ skills:
     dependencies: []
     commands: []
     tags: [docx, word, documents, reports, templates]
+
+  doc-coauthoring:
+    version: "1.0.0"
+    display_name: "Doc Coauthoring"
+    layer: documents
+    description: >
+      Guide structured co-authoring of documentation, proposals, technical
+      specs, decision docs, and similar written artifacts.
+    dependencies: []
+    commands: []
+    tags: [documentation, writing, specs, proposals]
 
   pdf:
     version: "1.0.0"
@@ -238,6 +416,28 @@ skills:
     dependencies: []
     commands: []
     tags: [xlsx, excel, spreadsheets, csv, data, charts]
+
+  internal-comms:
+    version: "1.0.0"
+    display_name: "Internal Comms"
+    layer: documents
+    description: >
+      Write internal communications such as status reports, leadership updates,
+      FAQs, incident reports, newsletters, and project updates.
+    dependencies: []
+    commands: []
+    tags: [communications, writing, reports]
+
+  theme-factory:
+    version: "1.0.0"
+    display_name: "Theme Factory"
+    layer: documents
+    description: >
+      Apply preset or generated themes to artifacts including slides, documents,
+      reports, and HTML pages.
+    dependencies: []
+    commands: []
+    tags: [themes, styling, documents, html]
 
   # ==================================================================
   # Animation Layer — GSAP ecosystem
@@ -342,18 +542,88 @@ skills:
     tags: [gsap, utilities, helpers, math]
 
   # ==================================================================
+  # Data, API, and Tooling Layer
+  # ==================================================================
+  a-stock-data:
+    version: "1.0.0"
+    display_name: "A Stock Data"
+    layer: tooling
+    description: >
+      Query China A-share stock prices, market data, K-lines, financial data,
+      realtime quotes, historical data, limit-up boards, and stock screening.
+    dependencies: []
+    commands: []
+    tags: [stocks, finance, china-a-share, data]
+
+  claude-api:
+    version: "1.0.0"
+    display_name: "Claude API"
+    layer: tooling
+    description: >
+      Reference Claude API and Anthropic SDK details including models, pricing,
+      streaming, tool use, MCP, caching, token counting, and migration guidance.
+    dependencies: []
+    commands: []
+    tags: [claude, anthropic, api, sdk]
+
+  mcp-builder:
+    version: "1.0.0"
+    display_name: "MCP Builder"
+    layer: tooling
+    description: >
+      Build high-quality MCP servers that expose external services through
+      well-designed tools using Python or TypeScript SDKs.
+    dependencies: []
+    commands: []
+    tags: [mcp, tools, integrations, api]
+
+  slack-gif-creator:
+    version: "1.0.0"
+    display_name: "Slack GIF Creator"
+    layer: tooling
+    description: >
+      Create animated GIFs optimized for Slack, including constraints,
+      validation, and animation concepts.
+    dependencies: []
+    commands: []
+    tags: [gif, slack, animation]
+
+  web-artifacts-builder:
+    version: "1.0.0"
+    display_name: "Web Artifacts Builder"
+    layer: tooling
+    description: >
+      Build complex claude.ai HTML artifacts with React, Tailwind CSS,
+      shadcn/ui, state management, and routing.
+    dependencies: []
+    commands: []
+    tags: [artifacts, react, tailwind, shadcn]
+
+  webapp-testing:
+    version: "1.0.0"
+    display_name: "Webapp Testing"
+    layer: tooling
+    description: >
+      Test local web applications with Playwright, browser screenshots,
+      console inspection, and frontend behavior verification.
+    dependencies: []
+    commands: []
+    tags: [testing, playwright, webapp, frontend]
+
+  # ==================================================================
   # Workflow Layer — project lifecycle and task orchestration
   # ==================================================================
   project-workflow:
-    version: "1.4.0"
+    version: "1.5.0"
     display_name: "Project Lifecycle Manager"
     layer: workflow
     description: >
-      5-phase project lifecycle (Requirements → Grill-Me Deep Dive → Design →
-      Implementation → Testing → Acceptance). Integrates grill-me for requirement
-      validation, design-taste-frontend or frontend-design for UI generation, and
-      impeccable for UI polish. Bug-fix automation included.
-      Triggers on: 新项目, 新功能, 新需求, 开发, 项目管理, project workflow.
+      Practical 5-phase project lifecycle (Requirements → Design →
+      Implementation → User Testing → Acceptance). Supports fast paths for
+      small scoped work, existing requirements/design documents, root-cause
+      bug fixing, UI collaboration with design and animation optimization skills,
+      and context artifacts under .codex/context or existing .claude/context.
+      Triggers on: 新项目, 新功能, 新需求, 开发, 项目管理, 修复 bug, project workflow.
     dependencies:
       - session-context
     commands:
@@ -376,15 +646,38 @@ skills:
       - task-run
     tags: [task-scheduling, parallelism, orchestration]
 
+  skiis-context:
+    version: "1.0.0"
+    display_name: "SKIIS Context"
+    layer: workflow
+    description: >
+      Persist coding-session memory in SKIIS docs/ai-context markdown files for
+      loading, saving, continuing, and recording project work across sessions.
+    dependencies: []
+    commands: []
+    tags: [context-management, session-persistence, legacy]
+
+  template:
+    version: "1.0.0"
+    display_name: "Template Skill"
+    layer: workflow
+    description: >
+      Template placeholder skill used as a scaffold example for new skill
+      development.
+    dependencies: []
+    commands: []
+    tags: [template, scaffold]
+
 # ==================================================================
 # Dependency graph (topological order for installation)
 # Layer 0 (no deps) → Layer 1 (depend on layer 0)
 # ==================================================================
 dependency_order:
-  - [session-context, skill-creator, karpathy-guidelines, skills-manager, skills-sync, skills-install, skills-status, grill-me]
-  - [canvas-design, frontend-design, impeccable, ui-ux-pro-max]
-  - [docx, pdf, pptx, xlsx]
+  - [session-context, skill-creator, karpathy-guidelines, skills-manager, skills-sync, skills-install, skills-status, grill-me, full-output-enforcement]
+  - [algorithmic-art, brand-guidelines, brandkit, canvas-design, design-taste-frontend, design-taste-frontend-v1, frontend-design, gpt-taste, high-end-visual-design, image-to-code, imagegen-frontend-mobile, imagegen-frontend-web, impeccable, industrial-brutalist-ui, minimalist-ui, react-bits, redesign-existing-projects, stitch-design-taste, ui-ux-pro-max]
+  - [doc-coauthoring, docx, internal-comms, pdf, pptx, theme-factory, xlsx]
   - [gsap-core, gsap-frameworks, gsap-performance, gsap-plugins, gsap-react, gsap-scrolltrigger, gsap-timeline, gsap-utils]
-  - [project-workflow, task-orchestrator]
+  - [a-stock-data, claude-api, mcp-builder, slack-gif-creator, web-artifacts-builder, webapp-testing]
+  - [project-workflow, skiis-context, task-orchestrator, template]
 
 

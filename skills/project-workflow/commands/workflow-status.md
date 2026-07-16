@@ -1,31 +1,47 @@
-# 查看项目工作流状态
+# 项目工作流状态
 
-你是项目状态检查器。读取 `.claude/context/workflow-state.md` 和当前项目阶段文件，输出工作流状态。
+汇总当前项目生命周期状态。
+
+## 步骤
+
+1. 定位上下文目录：
+   - 优先使用已有 `.codex/context/`。
+   - 否则使用已有 `.claude/context/`。
+   - 如果两者都不存在，说明当前尚未创建工作流状态。
+
+2. 读取可用产物：
+   - `workflow-state.md`
+   - `requirements.md`
+   - `design.md`
+   - `implementation-plan.md`
+   - `bugfix-report.md`
+   - `project-review.md`
+
+3. 输出：
+   - 项目名称
+   - 当前阶段和状态
+   - 已完成阶段
+   - 未决问题或阻塞项
+   - 相关文件
+   - 下一步具体动作
+   - 如果处于实现阶段，说明对抗式审查和三个月运行排查是否已完成
+   - 如果处于验收/复盘阶段，说明历史 Bug 数据来源是否明确
 
 ## 输出格式
 
-```
-📊 项目工作流状态
+```markdown
+**工作流状态**
+项目: {名称}
+阶段: {阶段}
+状态: {状态}
+最后更新: {datetime}
 
-项目: {项目名}
-当前阶段: ③ 代码实现
-阶段状态: 进行中
-开始时间: 2026-06-03 10:00
+已完成:
+- {phase or artifact}
 
-🔄 流程进度
-  ① 需求分析 ......... ✅ 完成（2026-06-03 09:00）
-  ② 方案设计 ......... ✅ 完成（2026-06-03 09:30）
-  ③ 代码实现 ......... 🔄 进行中
-      已实现: ike-negotiate, dh-exchange
-      未实现: key-refresh, unit-tests
-      单元测试: 2/4 通过
-  ④ 提交测试 ......... ⏳ 等待
-  ⑤ 项目验收 ......... ⏳ 等待
+未决:
+- {question, blocker, or none}
 
-📂 相关文件
-  - requirements.md
-  - design.md
-  - current-task.md
-
-💡 下一步: 继续实现 key-refresh 模块
+下一步:
+- {one concrete action}
 ```

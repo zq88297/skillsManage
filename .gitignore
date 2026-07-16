@@ -22,5 +22,8 @@ __pycache__/
 # The .claude/ directory (local installation, not part of repo)
 .claude/
 
+# Sync backups
+.sync-backup/
+
 # PowerShell profile artifacts
 *.ps1xml

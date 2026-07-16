@@ -1,146 +1,61 @@
-﻿# Context Health Check
+# Context Check
 
-You are the context health monitor. Your job is to assess the current
-conversation state and report on context quality, token usage, and the
-reliability of external memory. Think of this as a dashboard for the
-conversation's "working memory."
+你是上下文健康检查器。评估当前会话是否还能可靠继续，并检查本地上下文文件是否同步。
 
-## Dimension 1: Token consumption
+## 1. 选择上下文目录
 
-Estimate the current token usage:
+按顺序选择：
 
-- **Context window**: Claude's context window varies by model. The current
-  model typically has a ~200K token window.
-- **Usage estimate**: Count message turns and estimate based on typical
-  message sizes. A turn with code blocks and tool output can consume
-  significantly more than a short text exchange.
-- **Remaining headroom**: Rough estimate of how much context space remains.
-- **Projected rounds**: Based on average tokens per turn, estimate how many
-  more exchanges the session can sustain before quality degrades.
+1. `.codex/context/`
+2. 已存在的 `.claude/context/`
+3. 如二者都不存在，报告“未初始化”，建议运行 `/session-load`
 
-Present this as a visual bar:
+下文用 `{context}` 表示选中的目录。
 
-```
-Token Usage
-[████████░░] ~75% consumed
-~50K remaining  |  ~10-15 more rounds
-Status: 🟢 Healthy / 🟡 Warning / 🔴 Critical
-```
+## 2. 检查维度
 
-## Dimension 2: Information completeness
+### 会话窗口
 
-Evaluate whether the core context is intact:
+- 是否出现 conversation summary 或压缩痕迹。
+- 最近是否读入大量代码、日志或长文档。
+- 是否开始重复读取同一批文件。
 
-- **Task coherence**: Is the current task still clearly understood? Or has
-  the thread been lost across long exchanges?
-- **Response quality trend**: Are responses getting less precise? More
-  generic? Compare early-session responses to recent ones if visible.
-- **Contradictions**: Has the AI contradicted itself? Said X earlier and Y
-  later without acknowledging the change?
-- **Forgotten context**: Has the AI asked about something that was already
-  established earlier in the conversation?
+### 事实完整性
 
-```
-Information Quality
-Core task understanding:  ✅ Clear / ⚠️ Fading / ❌ Lost
-Response precision:       ✅ Sharp / ⚠️ Softening / ❌ Generic
-Consistency:              ✅ Consistent / ⚠️ Minor conflicts / ❌ Contradicting
-```
+- 当前任务是否清晰。
+- 路径、函数名、变量名、接口名是否经过本轮验证。
+- 最近回答是否出现前后矛盾或泛化。
+- 用户是否多次纠正同类事实。
 
-## Dimension 3: Hallucination risk
+### 外部记忆
 
-Assess the risk that the AI is generating incorrect information:
+检查：
 
-- **Fabricated identifiers**: Check if recently mentioned function names,
-  variable names, file paths, or API endpoints actually exist. Look at the
-  conversation history — did the AI invent a name that was never in the
-  codebase or earlier discussion?
-- **Overturned decisions**: Has the AI reversed a previously confirmed
-  technical decision without the user initiating that change?
-- **Style drift**: Is the AI suggesting code patterns that don't match the
-  project's established conventions (as documented in CLAUDE.md or visible
-  in existing code)?
+- `{context}/current-task.md`
+- `{context}/decisions.md`
+- `{context}/pitfalls.md`
+- `{context}/architecture.md`
+- `{context}/tasks/*.md`
 
-```
-Hallucination Risk
-Identifier accuracy:  ✅ Verified / ⚠️ Some unverified / ❌ Fabrications detected
-Decision stability:   ✅ Stable / ⚠️ Wavering / ❌ Reversing
-Style consistency:    ✅ Matches project / ⚠️ Drifting / ❌ Inconsistent
-Overall risk:         🟢 Low / 🟡 Medium / 🔴 High
+判断文件是否存在、是否过旧、是否与当前会话状态冲突。
+
+## 3. 输出格式
+
+```markdown
+## 上下文健康报告
+
+### 状态
+- 会话窗口：健康 / 警告 / 危急
+- 任务清晰度：清晰 / 有缺口 / 已丢失
+- 事实可靠性：已验证 / 部分未验证 / 高风险
+- 外部记忆：同步 / 过旧 / 未初始化
+
+### 发现
+- {具体问题 1}
+- {具体问题 2}
+
+### 建议
+- {继续工作 / 立即 /session-save / 保存后新开会话 / 重新加载关键文件}
 ```
 
-## Dimension 4: External memory state
-
-Check the persisted context files:
-
-- **File existence**: Do `.claude/context/` files exist?
-- **Freshness**: When was `current-task.md` last updated? Compare the
-  timestamp to the current conversation — is it stale?
-- **Consistency**: Does the content of the persisted files match what the
-  conversation says? If the file says "implementing auth" but the
-  conversation has moved on to "fixing database queries," the external
-  memory is out of sync.
-
-```
-External Memory
-.claude/context/current-task.md:  ✅ Exists / ⚠️ Stale (last updated: date) / ❌ Missing
-.claude/context/decisions.md:     ✅ Exists / ❌ Missing
-.claude/context/pitfalls.md:      ✅ Exists / ❌ Missing
-Sync status:  ✅ In sync / ⚠️ Stale / ❌ Out of sync
-```
-
-## Output: Combined health report
-
-```
-📊 Context Health Report
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-🪙 Token Status
-[████████░░] ~75% consumed | ~50K remaining | ~10-15 more rounds
-Status: 🟡 Warning
-
-🧠 Information Quality
-• Task clarity:     ✅ Clear
-• Response quality: ⚠️ Softening
-• Consistency:      ✅ Consistent
-
-🎯 Hallucination Risk
-• Identifiers:  ✅ Verified
-• Decisions:    ✅ Stable
-• Style match:  ✅ Consistent
-Overall: 🟢 Low
-
-💾 External Memory
-• current-task.md: ⚠️ Stale (last updated 3 hours ago)
-• decisions.md:    ✅ In sync
-• pitfalls.md:     ✅ In sync
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-💡 Recommendations
-[Based on the findings, give 1-3 specific, actionable recommendations]
-
-• If token pressure is high: Run /session-save now as a checkpoint,
-  then consider /session-end.
-• If external memory is stale: Run /session-save to sync.
-• If hallucination risk is elevated: This is a strong signal to end the
-  session and start fresh with /session-load.
-• If all clear: Keep working — context is healthy.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-```
-
-## Decision matrix
-
-| Token | Info Quality | Hallucination | Memory | Action |
-|-------|-------------|---------------|--------|--------|
-| 🟢 | ✅ | 🟢 | ✅ | Keep working |
-| 🟡 | ✅ | 🟢 | ✅ | Consider saving soon |
-| 🟡 | ⚠️ | 🟡 | ⚠️ | Save now, end session soon |
-| 🔴 | ⚠️ | 🟡 | ⚠️ | Save immediately, end session |
-| 🔴 | ❌ | 🔴 | ❌ | End session NOW, fresh start needed |
-| Any | Any | 🔴 | Any | Strongly recommend fresh session |
-
-After presenting the report, ask the user what they'd like to do — the
-decision is theirs, but your recommendation should be clear and honest.
-
+保持报告简短，建议必须可执行。
