@@ -1,14 +1,11 @@
 <#
 .SYNOPSIS
-    Synchronize skills between the repository and a target project or global directory.
+    Update target skills from this repository.
 
 .DESCRIPTION
-    In Pull mode (default), compares skills in the target against
-    the canonical versions in this repo. Shows what's new, modified,
-    removed, or identical. Backs up existing files before overwriting.
-
-    In Push mode, copies changes from a target back to this repo
-    (useful when refining a skill in the field).
+    Compares skills in the target against the canonical versions in this repo.
+    Shows what's new, modified, target-only, or identical. Backs up existing
+    target files before overwriting.
 
     Use -Scope global to sync with ~/.claude/skills/ instead of a project.
 
@@ -18,10 +15,6 @@
 .PARAMETER Scope
     "project" (default): sync with a specific project's .claude/skills/.
     "global": sync with ~/.claude/skills/.
-
-.PARAMETER Mode
-    "Pull" (default): update target from repo.
-    "Push": update repo from target.
 
 .PARAMETER Force
     Apply changes without confirmation prompt.
@@ -37,9 +30,6 @@
     .\sync.ps1 -Scope project -TargetPath F:\MyProject
     Sync a specific project.
 
-.EXAMPLE
-    .\sync.ps1 -Mode Push -DryRun
-    Preview what would be pushed from global to repo.
 #>
 
 param(
@@ -49,10 +39,6 @@ param(
     [Parameter(Mandatory = $false)]
     [ValidateSet("project", "global")]
     [string]$Scope = "global",
-
-    [Parameter(Mandatory = $false)]
-    [ValidateSet("Pull", "Push")]
-    [string]$Mode = "Pull",
 
     [Parameter(Mandatory = $false)]
     [switch]$Force,
@@ -108,7 +94,7 @@ function Get-SkillFileMap {
 Write-Host "=== Skills Sync ===" -ForegroundColor Cyan
 Write-Host "Repository: $RepoSkillsDir"
 Write-Host "Target:      $TargetSkillsDir"
-Write-Host "Mode:        $Mode"
+Write-Host "Direction:   repository -> target"
 if ($DryRun) { Write-Host "DRY RUN - no changes will be made" -ForegroundColor Yellow }
 Write-Host ""
 
@@ -119,7 +105,7 @@ $allPaths = @($repoMap.Keys) + @($targetMap.Keys) | Select-Object -Unique | Sort
 
 $newFiles = @()
 $modifiedFiles = @()
-$removedFiles = @()
+$targetOnlyFiles = @()
 $identicalFiles = @()
 
 foreach ($path in $allPaths) {
@@ -130,7 +116,7 @@ foreach ($path in $allPaths) {
         $newFiles += $path
     }
     elseif (-not $inRepo -and $inTarget) {
-        $removedFiles += $path
+        $targetOnlyFiles += $path
     }
     elseif ($repoMap[$path] -ne $targetMap[$path]) {
         $modifiedFiles += $path
@@ -141,7 +127,7 @@ foreach ($path in $allPaths) {
 }
 
 # --- Report ---
-if ($newFiles.Count -eq 0 -and $modifiedFiles.Count -eq 0 -and $removedFiles.Count -eq 0) {
+if ($newFiles.Count -eq 0 -and $modifiedFiles.Count -eq 0 -and $targetOnlyFiles.Count -eq 0) {
     Write-Host "All files are identical. Nothing to sync." -ForegroundColor Green
     exit 0
 }
@@ -154,9 +140,9 @@ if ($modifiedFiles.Count -gt 0) {
     Write-Host "MODIFIED ($($modifiedFiles.Count) files):" -ForegroundColor Yellow
     $modifiedFiles | ForEach-Object { Write-Host "  ~ $_" -ForegroundColor Yellow }
 }
-if ($removedFiles.Count -gt 0) {
-    Write-Host "REMOVED ($($removedFiles.Count) files):" -ForegroundColor Red
-    $removedFiles | ForEach-Object { Write-Host "  - $_" -ForegroundColor Red }
+if ($targetOnlyFiles.Count -gt 0) {
+    Write-Host "TARGET ONLY ($($targetOnlyFiles.Count) files, kept):" -ForegroundColor Yellow
+    $targetOnlyFiles | ForEach-Object { Write-Host "  local-only: $_" -ForegroundColor Yellow }
 }
 Write-Host "IDENTICAL ($($identicalFiles.Count) files)" -ForegroundColor DarkGray
 Write-Host ""
@@ -174,16 +160,14 @@ if (-not $Force) {
 
 # --- Backup before applying ---
 $backupDir = Join-Path $TargetSkillsDir ".backup\sync-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
-$sourceDir = if ($Mode -eq "Pull") { $RepoSkillsDir } else { $TargetSkillsDir }
-$destDir   = if ($Mode -eq "Pull") { $TargetSkillsDir } else { $RepoSkillsDir }
 
 Write-Host "Creating backup at: $backupDir" -ForegroundColor DarkGray
 New-Item -ItemType Directory -Force -Path $backupDir | Out-Null
 
-# Backup files that will be modified/removed
-$toBackup = $modifiedFiles + $removedFiles
+# Backup files that will be modified
+$toBackup = $modifiedFiles
 foreach ($path in $toBackup) {
-    $srcFile = Join-Path $destDir $path
+    $srcFile = Join-Path $TargetSkillsDir $path
     if (Test-Path $srcFile) {
         $backupFile = Join-Path $backupDir $path
         $backupParent = Split-Path -Parent $backupFile
@@ -192,31 +176,18 @@ foreach ($path in $toBackup) {
     }
 }
 
-# --- Apply: Pull mode ---
-if ($Mode -eq "Pull") {
-    # Copy new and modified files from repo to target
-    $toCopy = $newFiles + $modifiedFiles
-    foreach ($path in $toCopy) {
-        $src = Join-Path $RepoSkillsDir $path
-        $dst = Join-Path $TargetSkillsDir $path
-        $dstParent = Split-Path -Parent $dst
-        New-Item -ItemType Directory -Force -Path $dstParent | Out-Null
-        Copy-Item -Force $src $dst
-    }
-    Write-Host "Pulled $($toCopy.Count) files from repo to target." -ForegroundColor Green
+# Copy new and modified files from repo to target
+$toCopy = $newFiles + $modifiedFiles
+foreach ($path in $toCopy) {
+    $src = Join-Path $RepoSkillsDir $path
+    $dst = Join-Path $TargetSkillsDir $path
+    $dstParent = Split-Path -Parent $dst
+    New-Item -ItemType Directory -Force -Path $dstParent | Out-Null
+    Copy-Item -Force $src $dst
 }
-else {
-    # Push mode: copy new and modified files from target to repo
-    $toCopy = $newFiles + $modifiedFiles
-    foreach ($path in $toCopy) {
-        $src = Join-Path $TargetSkillsDir $path
-        $dst = Join-Path $RepoSkillsDir $path
-        $dstParent = Split-Path -Parent $dst
-        New-Item -ItemType Directory -Force -Path $dstParent | Out-Null
-        Copy-Item -Force $src $dst
-    }
-    Write-Host "Pushed $($toCopy.Count) files from target to repo." -ForegroundColor Green
-    Write-Host "Remember to commit the changes in the repo!" -ForegroundColor Yellow
+Write-Host "Updated $($toCopy.Count) files from repo to target." -ForegroundColor Green
+if ($targetOnlyFiles.Count -gt 0) {
+    Write-Host "Target-only files were preserved: $($targetOnlyFiles.Count)" -ForegroundColor Yellow
 }
 
 Write-Host ""

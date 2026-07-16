@@ -1,31 +1,25 @@
 <#
 .SYNOPSIS
-    Register a scheduled task to automatically sync skills from the live
-    Claude Code installation into this repository.
+    Register a scheduled task to automatically update local skills from this repository.
 
 .DESCRIPTION
     Creates a Windows Scheduled Task that runs sync-from-source.ps1 on a
-    schedule (daily by default). When changes are detected, they are
-    auto-committed and pushed to the remote.
-
-    Also can set up a Git post-commit hook to auto-push after each sync.
+    schedule (daily by default). The sync is one-way: repository -> local
+    installed skills. It does not commit or push.
 
 .PARAMETER Schedule
     One of: Daily, Weekly, Hourly. Default: Daily at 9:57 AM.
-
-.PARAMETER AutoPush
-    If set, the sync will also auto-push to the remote after committing.
 
 .PARAMETER Uninstall
     Remove the scheduled task.
 
 .EXAMPLE
     .\setup-auto-sync.ps1
-    Set up daily automatic sync from ~/.claude/skills/ to the repo.
+    Set up daily automatic sync from the repo to the local skills directory.
 
 .EXAMPLE
-    .\setup-auto-sync.ps1 -Schedule Hourly -AutoPush
-    Check for changes every hour and push to remote.
+    .\setup-auto-sync.ps1 -Schedule Hourly
+    Check for repository updates every hour.
 
 .EXAMPLE
     .\setup-auto-sync.ps1 -Uninstall
@@ -36,9 +30,6 @@ param(
     [Parameter(Mandatory = $false)]
     [ValidateSet("Daily", "Weekly", "Hourly")]
     [string]$Schedule = "Daily",
-
-    [Parameter(Mandatory = $false)]
-    [switch]$AutoPush,
 
     [Parameter(Mandatory = $false)]
     [switch]$Uninstall
@@ -62,13 +53,7 @@ if ($Uninstall) {
 # Build the script path and arguments
 $syncScript = Join-Path $RepoRoot "scripts\sync-from-source.ps1"
 $powershellPath = "powershell.exe"
-
-if ($AutoPush) {
-    $arguments = "-NoProfile -ExecutionPolicy Bypass -Command `"Set-Location '$RepoRoot'; & '$syncScript' -AutoCommit -Force; git push origin master`""
-}
-else {
-    $arguments = "-NoProfile -ExecutionPolicy Bypass -Command `"Set-Location '$RepoRoot'; & '$syncScript' -AutoCommit -Force`""
-}
+$arguments = "-NoProfile -ExecutionPolicy Bypass -Command `"Set-Location '$RepoRoot'; & '$syncScript' -Force`""
 
 # Determine schedule trigger
 $trigger = switch ($Schedule) {
@@ -102,12 +87,11 @@ try {
         -Trigger $trigger `
         -Principal $principal `
         -Settings $settings `
-        -Description "Auto-sync Claude Code skills from ~/.claude/skills/ to the skills-manage repository."
+        -Description "Auto-sync local skills from the skills-manage repository."
 
     Write-Host "=== Auto-Sync Scheduled ===" -ForegroundColor Cyan
     Write-Host "Task name:  $TaskName"
     Write-Host "Schedule:   $Schedule"
-    Write-Host "Auto-push:  $AutoPush"
     Write-Host ""
     Write-Host "The task will run sync-from-source.ps1 on schedule."
     Write-Host "Check Task Scheduler (taskschd.msc) to view or modify."
@@ -120,6 +104,6 @@ catch {
     Write-Host "  # Auto-check skills once per session"
     Write-Host "  `$repo = 'F:\AICode\skillsManage'"
     Write-Host "  if (Test-Path `$repo) {"
-    Write-Host "      & `$repo\scripts\sync-from-source.ps1 -AutoCommit -Force"
+    Write-Host "      & `$repo\scripts\sync-from-source.ps1 -Force"
     Write-Host "  }"
 }

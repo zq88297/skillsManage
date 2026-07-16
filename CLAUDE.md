@@ -1,7 +1,7 @@
 # CLAUDE.md — Skills Management Repository
 
 ## Purpose
-Central version-controlled repository for ALL Claude Code skills (21 skills, 400+ files).
+Central version-controlled repository for managed Claude Code skills.
 Source of truth — install the complete skill ecosystem into any project with one command.
 
 ## Repository Conventions
@@ -35,33 +35,11 @@ Each skill has its own semver in `skill-catalog.yaml`.
 
 ---
 
-## Complete Skill Inventory (20 skills)
+## Complete Skill Inventory
 
-| # | Skill | Layer | Version | Has Dependencies | Special Resources |
-|---|-------|-------|---------|-----------------|-------------------|
-| 1 | session-context | foundation | 2.1.0 | — | 6 commands |
-| 2 | skill-creator | meta | 1.0.0 | — | scripts/, agents/, assets/, eval-viewer/ |
-| 3 | karpathy-guidelines | meta | 1.0.0 | — | — |
-| 4 | canvas-design | design | 1.0.0 | — | canvas-fonts/ (82 fonts) |
-| 5 | frontend-design | design | 1.0.0 | — | — |
-| 6 | impeccable | design | 3.9.1 | — | reference/ (28 docs), scripts/ (70+ tools) |
-| 7 | docx | documents | 1.0.0 | — | scripts/ (52 files, OOXML schemas) |
-| 8 | pdf | documents | 1.0.0 | — | scripts/ (8 Python), forms.md, reference.md |
-| 9 | pptx | documents | 1.0.0 | — | scripts/ (47 files), editing.md, pptxgenjs.md |
-| 10 | xlsx | documents | 1.0.0 | — | scripts/ (46 files, OOXML schemas) |
-| 11 | gsap-core | animation | 1.0.0 | — | — |
-| 12 | gsap-frameworks | animation | 1.0.0 | — | — |
-| 13 | gsap-performance | animation | 1.0.0 | — | — |
-| 14 | gsap-plugins | animation | 1.0.0 | — | — |
-| 15 | gsap-react | animation | 1.0.0 | — | — |
-| 16 | gsap-scrolltrigger | animation | 1.0.0 | — | — |
-| 17 | gsap-timeline | animation | 1.0.0 | — | — |
-| 18 | gsap-utils | animation | 1.0.0 | — | — |
-| 19 | project-workflow | workflow | 1.3.0 | → session-context | 3 commands, agents/ |
-| 20 | task-orchestrator | workflow | 1.1.0 | → session-context | 2 commands |
-| 21 | skills-manager | meta | 1.0.0 | — | 3 commands |
-
-**Dependency chain:** Only `project-workflow` and `task-orchestrator` have dependencies (both → `session-context`). All other 18 skills are independent.
+Use `skill-catalog.yaml` as the source of truth for skill names, versions,
+layers, dependencies, and install order. Do not maintain a second hand-written
+inventory in this file.
 
 ---
 
@@ -70,7 +48,7 @@ Each skill has its own semver in `skill-catalog.yaml`.
 ### Installing skills to a project
 
 ```bash
-# Linux/macOS — Full install (all 20 skills)
+# Linux/macOS — Full install
 bash ./scripts/install.sh /path/to/project
 
 # Linux/macOS — Selective install
@@ -81,7 +59,7 @@ bash ./scripts/install.sh /path/to/project --with-hooks
 ```
 
 ```powershell
-# Windows — Full install (all 20 skills)
+# Windows — Full install
 .\scripts\install.ps1 -TargetPath F:\MyProject
 
 # Windows — Selective install
@@ -91,22 +69,22 @@ bash ./scripts/install.sh /path/to/project --with-hooks
 .\scripts\install.ps1 -TargetPath F:\MyProject -WithHooks
 ```
 
-### Syncing (from live installation to repo)
+### Syncing (from repository to local skills)
 
 ```bash
 # Linux/macOS — Preview changes
 bash ./scripts/sync-from-source.sh --dry-run
 
-# Linux/macOS — Pull and auto-commit
-bash ./scripts/sync-from-source.sh --auto-commit --force
+# Linux/macOS — Apply updates
+bash ./scripts/sync-from-source.sh --force
 ```
 
 ```powershell
 # Windows — Preview changes
 .\scripts\sync-from-source.ps1 -DryRun
 
-# Windows — Pull and auto-commit
-.\scripts\sync-from-source.ps1 -AutoCommit -Force
+# Windows — Apply updates
+.\scripts\sync-from-source.ps1 -Force
 ```
 
 ### Creating a new skill
@@ -139,21 +117,19 @@ bash ./scripts/validate.sh   # if available, otherwise use PowerShell
 .\scripts\export-cursor.ps1 -OutputPath F:\MyProject
 ```
 
-### Slash Commands (skills-manager)
+### Skill Sync
 
-| Command | Purpose |
-|---------|---------|
-| `/skills-status` | Check health of repo, source, and current project |
-| `/skills-sync` | Pull updates from ~/.claude/skills/ → repo → push |
-| `/skills-install` | Install skills from repo to current project |
+`skills-sync` checks whether the repository has newer or missing skills and
+updates the local installed skills from the repository. It does not push local
+changes back to the repo and does not auto-commit.
 
 ---
 
 ## Key Files
-- `skill-catalog.yaml` — Complete manifest: 20 skills, versions, layers, dependencies
+- `skill-catalog.yaml` — Complete manifest: skills, versions, layers, dependencies
 - `skills/*/SKILL.md` — Canonical skill definitions (400+ total files)
 - `scripts/install.ps1` / `scripts/install.sh` — Deploy with dependency resolution (Windows / Unix)
-- `scripts/sync-from-source.ps1` / `scripts/sync-from-source.sh` — Pull from live `~/.claude/skills/` into repo (Windows / Unix)
-- `scripts/sync.ps1` — Bidirectional sync with backup (Windows)
+- `scripts/sync-from-source.ps1` / `scripts/sync-from-source.sh` — Update local installed skills from this repo (Windows / Unix)
+- `scripts/sync.ps1` — Update target project/global skills from this repo with backup (Windows)
 - `llms.txt` — GSAP skills index for AI agents
 - `session-context.skill` — Packaged skill archive (ZIP format)

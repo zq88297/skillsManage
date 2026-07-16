@@ -68,54 +68,17 @@ skills:
     commands: []
     tags: [coding-guidelines, best-practices, code-review]
 
-  skills-manager:
-    version: "1.0.0"
-    display_name: "Skills Repository Manager"
-    layer: meta
-    description: >
-      Manage the Claude Code skills repository — sync, install, status.
-      Trigger when the user wants to sync skills, update the skills repo,
-      install skills to a project, or check skills status. Use for:
-      同步技能, 更新技能仓库, 安装技能, 技能状态, skills sync/install/status.
-    dependencies: []
-    commands:
-      - skills-sync
-      - skills-install
-      - skills-status
-    tags: [skills-management, sync, install, maintenance]
-
   skills-sync:
-    version: "1.0.0"
+    version: "2.0.0"
     display_name: "Skills Sync Command"
     layer: meta
     description: >
-      Sync skills from ~/.claude/skills/ to the repository and push to remote.
-      Thin entry point — delegates full workflow to skills-manager.
+      Check whether the skills repository has newer or missing skills, then
+      update the local installed skills from the repository. One-way sync:
+      repository -> local installed skills. Does not commit or push.
     dependencies: []
     commands: []
-    tags: [skills-management, sync, entry-point]
-
-  skills-install:
-    version: "1.0.0"
-    display_name: "Skills Install Command"
-    layer: meta
-    description: >
-      Install skills from the repository to the current project.
-      Thin entry point — delegates full workflow to skills-manager.
-    dependencies: []
-    commands: []
-    tags: [skills-management, install, entry-point]
-
-  skills-status:
-    version: "1.0.0"
-    display_name: "Skills Status Command"
-    layer: meta
-    description: >
-      Show skill ecosystem health — repo, source, and project installation status.
-      Thin entry point — delegates full workflow to skills-manager.
-    dependencies: []
-    commands: []
-    tags: [skills-management, status, entry-point]
+    tags: [skills-management, sync, update, local-install]
 
   grill-me:
     version: "1.0.0"
@@ -673,7 +636,7 @@ skills:
 # Layer 0 (no deps) → Layer 1 (depend on layer 0)
 # ==================================================================
 dependency_order:
-  - [session-context, skill-creator, karpathy-guidelines, skills-manager, skills-sync, skills-install, skills-status, grill-me, full-output-enforcement]
+  - [session-context, skill-creator, karpathy-guidelines, skills-sync, grill-me, full-output-enforcement]
   - [algorithmic-art, brand-guidelines, brandkit, canvas-design, design-taste-frontend, design-taste-frontend-v1, frontend-design, gpt-taste, high-end-visual-design, image-to-code, imagegen-frontend-mobile, imagegen-frontend-web, impeccable, industrial-brutalist-ui, minimalist-ui, react-bits, redesign-existing-projects, stitch-design-taste, ui-ux-pro-max]
   - [doc-coauthoring, docx, internal-comms, pdf, pptx, theme-factory, xlsx]
   - [gsap-core, gsap-frameworks, gsap-performance, gsap-plugins, gsap-react, gsap-scrolltrigger, gsap-timeline, gsap-utils]

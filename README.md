@@ -1,6 +1,6 @@
 # Skills Manager
 
-中央化的 Claude Code 技能管理仓库 —— 20 个技能，400+ 文件，版本控制，一键部署。
+中央化的 Claude Code 技能管理仓库 —— 统一维护、版本控制、一键部署。
 
 ## 为什么需要这个？
 
@@ -8,8 +8,8 @@
 
 这个仓库作为**唯一真相来源（source of truth）**：
 
-- 📦 **一键安装** — 一条命令部署全部 20 个技能到新项目
-- 🔄 **双向同步** — 在项目中改进的技能可以推送回仓库
+- 📦 **一键安装** — 一条命令部署仓库 catalog 中的技能到新项目
+- 🔄 **单向同步** — 检查仓库技能更新，并更新本地或项目中的技能
 - 🔗 **自动依赖解析** — 安装 `project-workflow` 会自动带上 `session-context`
 - 🤖 **跨 Agent 兼容** — 导出为 Cursor、Cline、Copilot 格式
 - 📝 **版本管理** — Git 追踪每个技能的变更历史
@@ -69,7 +69,9 @@ cd skills-manage
 
 重启 Claude Code，技能自动被发现。
 
-## 技能清单（20 个）
+## 技能清单
+
+完整技能清单以 `skill-catalog.yaml` 为准，下面只列出常用分层入口。
 
 ### 基础层
 | 技能 | 说明 |
@@ -124,9 +126,6 @@ cd skills-manage
 # 更新项目中的技能
 .\scripts\sync.ps1 -TargetPath F:\MyProject
 
-# 把项目中的改进推送回仓库
-.\scripts\sync.ps1 -TargetPath F:\MyProject -Mode Push
-
 # 创建新技能
 .\scripts\new-skill.ps1 -Name "my-skill" -Description "当用户要求做X时触发"
 
@@ -141,7 +140,7 @@ cd skills-manage
 
 ```
 skillsManage/
-├── skills/                # 20 个技能目录（400+ 文件）
+├── skills/                # 技能目录
 ├── scripts/               # setup.ps1/sh (一键安装), install, sync, validate, new-skill, export-cursor
 ├── shared/                # hooks 模板 + 脚手架模板
 ├── adapters/              # Cursor / Cline / Copilot 适配器

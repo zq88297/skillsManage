@@ -21,7 +21,7 @@
 
 .EXAMPLE
     .\install.ps1 -TargetPath F:\MyProject
-    Installs all 20 skills to F:\MyProject\.claude\skills\
+    Installs all catalog skills to F:\MyProject\.claude\skills\
 
 .EXAMPLE
     .\install.ps1 -TargetPath F:\MyProject -Skills project-workflow,gsap-core
@@ -61,74 +61,95 @@ Write-Host "Target:      $TargetPath"
 Write-Host ""
 
 # ===================================================================
-# Hardcoded dependency map — source of truth: skill-catalog.yaml
-# Update this when adding/removing skills with dependencies.
+# Catalog loading
 # ===================================================================
-$Script:DependencyMap = @{
-    'session-context'      = @()
-    'skill-creator'        = @()
-    'karpathy-guidelines'  = @()
-    'skills-manager'       = @()
-    'skills-install'       = @()
-    'skills-sync'          = @()
-    'skills-status'        = @()
-    'canvas-design'        = @()
-    'frontend-design'      = @()
-    'impeccable'           = @()
-    'docx'                 = @()
-    'pdf'                  = @()
-    'pptx'                 = @()
-    'xlsx'                 = @()
-    'gsap-core'            = @()
-    'gsap-frameworks'      = @()
-    'gsap-performance'     = @()
-    'gsap-plugins'         = @()
-    'gsap-react'           = @()
-    'gsap-scrolltrigger'   = @()
-    'gsap-timeline'        = @()
-    'gsap-utils'           = @()
-    'project-workflow'     = @('session-context')
-    'task-orchestrator'    = @('session-context')
+function Read-Catalog {
+    param([string]$Path)
+
+    if (-not (Test-Path $Path)) {
+        Write-Error "Catalog file does not exist: $Path"
+        exit 1
+    }
+
+    $lines = Get-Content -Encoding UTF8 $Path
+    $skills = @{}
+    $installOrder = @()
+    $inSkills = $false
+    $inDependencyOrder = $false
+    $currentSkill = $null
+    $readingDependencies = $false
+
+    foreach ($line in $lines) {
+        if ($line -eq "skills:") {
+            $inSkills = $true
+            $inDependencyOrder = $false
+            continue
+        }
+        if ($line -eq "dependency_order:") {
+            $inSkills = $false
+            $inDependencyOrder = $true
+            $currentSkill = $null
+            $readingDependencies = $false
+            continue
+        }
+
+        if ($inSkills) {
+            if ($line -match '^  ([a-z0-9-]+):\s*$') {
+                $currentSkill = $Matches[1]
+                $skills[$currentSkill] = @{
+                    Version = "unknown"
+                    Dependencies = @()
+                }
+                $readingDependencies = $false
+                continue
+            }
+
+            if ($null -ne $currentSkill) {
+                if ($line -match '^\s{4}version:\s*"?([^"]+)"?\s*$') {
+                    $skills[$currentSkill].Version = $Matches[1]
+                    continue
+                }
+                if ($line -match '^\s{4}dependencies:\s*$') {
+                    $readingDependencies = $true
+                    continue
+                }
+                if ($readingDependencies -and $line -match '^\s{6}-\s+([a-z0-9-]+)\s*$') {
+                    $skills[$currentSkill].Dependencies += $Matches[1]
+                    continue
+                }
+                if ($readingDependencies -and $line -match '^\s{4}\S') {
+                    $readingDependencies = $false
+                }
+            }
+        }
+        elseif ($inDependencyOrder) {
+            if ($line -match '^\s+-\s+\[(.+)\]\s*$') {
+                $installOrder += ($Matches[1] -split ',') | ForEach-Object { $_.Trim() } | Where-Object { $_ }
+            }
+        }
+    }
+
+    foreach ($name in ($skills.Keys | Sort-Object)) {
+        if ($name -notin $installOrder) {
+            $installOrder += $name
+        }
+    }
+
+    return @{
+        Skills = $skills
+        InstallOrder = $installOrder
+    }
 }
 
-# Display versions (read from skill-catalog.yaml for reference)
-$Script:SkillVersions = @{
-    'session-context'      = '2.1.0'
-    'skill-creator'        = '1.0.0'
-    'karpathy-guidelines'  = '1.0.0'
-    'skills-manager'       = '1.0.0'
-    'skills-install'       = '1.0.0'
-    'skills-sync'          = '1.0.0'
-    'skills-status'        = '1.0.0'
-    'canvas-design'        = '1.0.0'
-    'frontend-design'      = '1.0.0'
-    'impeccable'           = '3.9.1'
-    'docx'                 = '1.0.0'
-    'pdf'                  = '1.0.0'
-    'pptx'                 = '1.0.0'
-    'xlsx'                 = '1.0.0'
-    'gsap-core'            = '1.0.0'
-    'gsap-frameworks'      = '1.0.0'
-    'gsap-performance'     = '1.0.0'
-    'gsap-plugins'         = '1.0.0'
-    'gsap-react'           = '1.0.0'
-    'gsap-scrolltrigger'   = '1.0.0'
-    'gsap-timeline'        = '1.0.0'
-    'gsap-utils'           = '1.0.0'
-    'project-workflow'     = '1.3.0'
-    'task-orchestrator'    = '1.1.0'
-}
+$Script:Catalog = Read-Catalog -Path $CatalogFile
+$Script:DependencyMap = @{}
+$Script:SkillVersions = @{}
+$Script:InstallOrder = @($Script:Catalog.InstallOrder)
 
-# Install order (foundation → meta → design → documents → animation → workflow)
-$Script:InstallOrder = @(
-    'session-context', 'skill-creator', 'karpathy-guidelines', 'skills-manager',
-    'skills-install', 'skills-sync', 'skills-status',
-    'canvas-design', 'frontend-design', 'impeccable',
-    'docx', 'pdf', 'pptx', 'xlsx',
-    'gsap-core', 'gsap-frameworks', 'gsap-performance', 'gsap-plugins',
-    'gsap-react', 'gsap-scrolltrigger', 'gsap-timeline', 'gsap-utils',
-    'project-workflow', 'task-orchestrator'
-)
+foreach ($skillName in $Script:Catalog.Skills.Keys) {
+    $Script:DependencyMap[$skillName] = @($Script:Catalog.Skills[$skillName].Dependencies)
+    $Script:SkillVersions[$skillName] = $Script:Catalog.Skills[$skillName].Version
+}
 
 # ===================================================================
 # Resolve dependency closure (BFS transitive closure)
