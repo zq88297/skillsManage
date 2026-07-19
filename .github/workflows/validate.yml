@@ -50,7 +50,7 @@ jobs:
               continue
             fi
             # Extract name field between --- markers (handle CRLF)
-            yaml_name=$(sed -n '/^---\r\?$/,/^---\r\?$/p' "$skill_file" | tr -d '\r' | grep '^name:' | head -1 | sed 's/name:\s*//' | tr -d '"')
+            yaml_name=$(sed '1s/^\xEF\xBB\xBF//' "$skill_file" | sed -n '/^---\r\?$/,/^---\r\?$/p' | tr -d '\r' | grep '^name:' | head -1 | sed 's/name:\s*//' | tr -d '"')
             if [ -z "$yaml_name" ]; then
               echo "FAIL: $name — no 'name:' in frontmatter"
               errors=$((errors + 1))

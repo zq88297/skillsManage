@@ -1,5 +1,5 @@
 ---
-name: template-skill
+name: template
 description: Replace with description of the skill and when Claude should use it.
 ---
 

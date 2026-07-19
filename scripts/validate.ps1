@@ -88,7 +88,8 @@ foreach ($dir in $skillDirs) {
         continue
     }
 
-    $frontmatter = Get-Content $skillFile -Raw -Encoding UTF8
+    # Normalize an optional UTF-8 BOM so local validation matches CI behavior.
+    $frontmatter = (Get-Content $skillFile -Raw -Encoding UTF8) -replace "^\uFEFF", ""
     if ($frontmatter -notmatch '---\s*\nname:\s*(\S+)') {
         Add-Error "$($dir.Name)/SKILL.md: Missing or invalid YAML frontmatter (no 'name:' field)"
         continue
