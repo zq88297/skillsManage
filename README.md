@@ -1,151 +1,192 @@
 # Skills Manager
 
-中央化的 Claude Code 技能管理仓库 —— 统一维护、版本控制、一键部署。
+集中维护、版本控制和部署 AI 编程技能的仓库。`skills/` 是技能定义的唯一真相来源，`skill-catalog.yaml` 记录版本、分类、依赖和安装顺序。
 
-## 为什么需要这个？
+当前 catalog 共管理 **50 个技能**，覆盖项目工作流、代码规范、前端设计、文档处理、动画、数据查询、MCP 和 Web 测试等场景。
 
-更换 agent 或开新项目时，需要重新配置所有技能。手动复制容易导致版本不一致、遗漏依赖、丢失改进。
+## 功能
 
-这个仓库作为**唯一真相来源（source of truth）**：
-
-- 📦 **一键安装** — 一条命令部署仓库 catalog 中的技能到新项目
-- 🔄 **单向同步** — 检查仓库技能更新，并更新本地或项目中的技能
-- 🔗 **自动依赖解析** — 安装 `project-workflow` 会自动带上 `session-context`
-- 🤖 **跨 Agent 兼容** — 导出为 Cursor、Cline、Copilot 格式
-- 📝 **版本管理** — Git 追踪每个技能的变更历史
+- 一键安装全部或指定技能到全局目录或当前项目
+- 从 catalog 读取技能版本和依赖关系（PowerShell 安装器）
+- 单向同步仓库版本到本地或项目，保留目标端独有技能
+- 修改前自动备份已有文件
+- 校验技能结构、frontmatter、命令引用、catalog 和依赖图
+- 导出 Cursor、Cline 等 Agent 可使用的规则格式
 
 ## 快速开始
 
-### 一键安装（推荐）
+### 一键安装
 
-运行一条命令，技能自动安装到全局 `~/.claude/skills/`，所有项目可用：
+默认安装到全局 `~/.claude/skills/`，完成后重启 Claude Code。
 
-**macOS / Linux：**
+macOS / Linux：
+
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/zq88297/skillsManage/master/scripts/setup.sh)
 ```
 
-**Windows PowerShell：**
+Windows PowerShell：
+
 ```powershell
 irm https://raw.githubusercontent.com/zq88297/skillsManage/master/scripts/setup.ps1 | iex; Install-Skills
 ```
 
-### 只安装到当前项目
+只安装到当前项目：
 
 ```bash
 # macOS / Linux
-bash <(curl -fsSL .../setup.sh) --scope project
-
-# Windows PowerShell
-irm ... | iex; Install-Skills -Scope project
+bash <(curl -fsSL https://raw.githubusercontent.com/zq88297/skillsManage/master/scripts/setup.sh) --scope project
 ```
-
-### 只安装部分技能
-
-```bash
-# macOS / Linux
-bash <(curl -fsSL .../setup.sh) --skills gsap-core,gsap-timeline
-
-# Windows PowerShell
-irm ... | iex; Install-Skills -Skills "gsap-core,gsap-timeline"
-```
-
-### 手动安装
 
 ```powershell
-# 1. 克隆
+# Windows PowerShell
+irm https://raw.githubusercontent.com/zq88297/skillsManage/master/scripts/setup.ps1 | iex; Install-Skills -Scope project
+```
+
+只安装指定技能：
+
+```bash
+# macOS / Linux
+bash <(curl -fsSL https://raw.githubusercontent.com/zq88297/skillsManage/master/scripts/setup.sh) --skills gsap-core,gsap-timeline
+```
+
+```powershell
+# Windows PowerShell
+irm https://raw.githubusercontent.com/zq88297/skillsManage/master/scripts/setup.ps1 | iex; Install-Skills -Skills "gsap-core,gsap-timeline"
+```
+
+> PowerShell 安装器会根据 `skill-catalog.yaml` 解析传递依赖。Unix 安装器当前只安装显式指定的技能；选择有依赖的技能时，请同时列出其依赖。
+
+### 从本地仓库安装
+
+```powershell
 git clone https://github.com/zq88297/skillsManage.git skills-manage
 cd skills-manage
 
-# 2. 安装全部技能到项目
+# 安装全部技能到项目
 .\scripts\install.ps1 -TargetPath F:\MyProject
 
-# 3. 或按需安装
+# 按需安装，并自动解析依赖
 .\scripts\install.ps1 -TargetPath F:\MyProject -Skills project-workflow,gsap-core
 
-# 4. 同时安装 hooks
+# 同时安装 shared/hooks
 .\scripts\install.ps1 -TargetPath F:\MyProject -WithHooks
 ```
 
-重启 Claude Code，技能自动被发现。
+```bash
+git clone https://github.com/zq88297/skillsManage.git skills-manage
+cd skills-manage
 
-## 技能清单
+# 安装全部技能到项目
+bash ./scripts/install.sh /path/to/project
 
-完整技能清单以 `skill-catalog.yaml` 为准，下面只列出常用分层入口。
+# 按需安装
+bash ./scripts/install.sh /path/to/project --skills session-context,project-workflow
 
-### 基础层
-| 技能 | 说明 |
-|------|------|
-| `session-context` | 全局上下文管理器 — 自动加载、任务追踪、决策记录 |
+# 同时安装 shared/hooks
+bash ./scripts/install.sh /path/to/project --with-hooks
+```
 
-### 元技能
-| 技能 | 说明 |
-|------|------|
-| `skill-creator` | 创建、优化、评估技能 |
-| `karpathy-guidelines` | Karpathy 编码规范 — 减少 LLM 编码错误 |
+项目级技能安装到 `<项目>/.claude/skills/`。
 
-### 设计层
-| 技能 | 说明 |
-|------|------|
-| `canvas-design` | 视觉艺术 — 海报、设计、PNG/PDF 生成（含 82 字体） |
-| `frontend-design` | 前端界面设计 — 网站、Dashboard、React 组件 |
-| `impeccable` | UI 审查/优化 — 层次、可访问性、动效、主题（v3.9.1） |
+## 同步与维护
 
-### 文档层
-| 技能 | 说明 |
-|------|------|
-| `docx` | Word 文档 — 创建、编辑、格式化、修订跟踪 |
-| `pdf` | PDF 工具 — 读取、合并、拆分、表单、OCR |
-| `pptx` | PowerPoint — 幻灯片创建、编辑、模板 |
-| `xlsx` | Excel 电子表格 — 公式、图表、数据清洗、CSV |
+所有同步都是 **仓库 -> 目标目录** 的单向更新。目标目录中的独有技能会保留，不会反向写入仓库；被覆盖的内容会保存到目标技能目录下的 `.backup/`。
 
-### 动画层（GSAP 生态）
-| 技能 | 说明 |
-|------|------|
-| `gsap-core` | 核心 API — tween、easing、stagger |
-| `gsap-frameworks` | Vue/Svelte 集成 |
-| `gsap-performance` | 性能优化 — 60fps、layout thrashing |
-| `gsap-plugins` | 插件 — Scroll、SVG、Draggable、SplitText |
-| `gsap-react` | React 集成 — useGSAP、gsap.context() |
-| `gsap-scrolltrigger` | 滚动动画 — parallax、pin、scrub |
-| `gsap-timeline` | 时间线 — 序列、编排 |
-| `gsap-utils` | 工具函数 — clamp、mapRange、random |
+### 更新当前机器的本地技能
 
-### 工作流层
-| 技能 | 说明 |
-|------|------|
-| `project-workflow` | 项目生命周期 — 需求→设计→实现→测试→验收 |
-| `task-orchestrator` | 并行任务调度 — 依赖分析、多会话编排 |
-
-## 日常操作
+`sync-from-source` 会在实际同步前尝试执行 `git pull --ff-only`。默认目标依次为 `$CODEX_HOME/skills`、`~/.codex/skills`、`~/.claude/skills`。
 
 ```powershell
-# 同步（预览差异）
-.\scripts\sync.ps1 -TargetPath F:\MyProject -DryRun
+# 预览差异
+.\scripts\sync-from-source.ps1 -DryRun
 
-# 更新项目中的技能
-.\scripts\sync.ps1 -TargetPath F:\MyProject
+# 拉取仓库更新并应用到本地技能目录
+.\scripts\sync-from-source.ps1 -Force
 
-# 创建新技能
-.\scripts\new-skill.ps1 -Name "my-skill" -Description "当用户要求做X时触发"
+# 指定本地技能目录
+.\scripts\sync-from-source.ps1 -SourcePath C:\path\to\skills -Force
+```
 
+```bash
+bash ./scripts/sync-from-source.sh --dry-run
+bash ./scripts/sync-from-source.sh --force
+bash ./scripts/sync-from-source.sh --source /path/to/skills --force
+```
+
+### 更新全局或项目技能
+
+`sync.ps1` 使用当前仓库内容更新目标，不会自动拉取远端提交。
+
+```powershell
+# 预览并更新全局 ~/.claude/skills（默认 scope）
+.\scripts\sync.ps1 -DryRun
+.\scripts\sync.ps1 -Force
+
+# 预览并更新指定项目
+.\scripts\sync.ps1 -Scope project -TargetPath F:\MyProject -DryRun
+.\scripts\sync.ps1 -Scope project -TargetPath F:\MyProject -Force
+```
+
+Windows 可创建定时同步任务：
+
+```powershell
+.\scripts\setup-auto-sync.ps1 -Schedule Daily
+.\scripts\setup-auto-sync.ps1 -Schedule Hourly
+.\scripts\setup-auto-sync.ps1 -Uninstall
+```
+
+更多维护说明见 [MAINTENANCE.md](MAINTENANCE.md)。
+
+## 技能目录
+
+| 分类 | 数量 | 示例 |
+| --- | ---: | --- |
+| 基础与元技能 | 6 | `session-context`、`skill-creator`、`karpathy-guidelines`、`skills-sync` |
+| 设计与前端 | 19 | `frontend-design`、`impeccable`、`ui-ux-pro-max`、`react-bits` |
+| 文档与内容 | 7 | `docx`、`pdf`、`pptx`、`xlsx`、`doc-coauthoring` |
+| GSAP 动画 | 8 | `gsap-core`、`gsap-react`、`gsap-scrolltrigger`、`gsap-timeline` |
+| 数据与工具 | 6 | `a-stock-data`、`claude-api`、`mcp-builder`、`webapp-testing` |
+| 工作流 | 4 | `project-workflow`、`task-orchestrator`、`skiis-context` |
+
+完整技能名称、版本、描述、依赖和安装顺序以 [skill-catalog.yaml](skill-catalog.yaml) 为准。
+
+## 开发命令
+
+```powershell
 # 校验仓库完整性
 .\scripts\validate.ps1
 
-# 导出到 Cursor
+# 创建新技能并登记到 catalog
+.\scripts\new-skill.ps1 -Name "my-skill" -Description "当用户要求做 X 时触发"
+
+# 导出核心规则到 Cursor
 .\scripts\export-cursor.ps1 -OutputPath F:\MyProject
+
+# 导出指定技能到 Cursor
+.\scripts\export-cursor.ps1 -OutputPath F:\MyProject -Skills session-context,project-workflow
 ```
+
+Unix 环境可使用 `scripts/new-skill.sh` 创建技能。Cursor 导出默认包含 `session-context`、`project-workflow` 和 `task-orchestrator`；Cline 的使用方式见 [adapters/cline/README.md](adapters/cline/README.md)。
 
 ## 目录结构
 
-```
+```text
 skillsManage/
-├── skills/                # 技能目录
-├── scripts/               # setup.ps1/sh (一键安装), install, sync, validate, new-skill, export-cursor
-├── shared/                # hooks 模板 + 脚手架模板
-├── adapters/              # Cursor / Cline / Copilot 适配器
-├── skill-catalog.yaml     # 完整技能清单
-├── llms.txt               # GSAP AI 索引
-├── session-context.skill  # 打包技能（ZIP 格式）
-└── CLAUDE.md / README.md / CHANGELOG.md
+|-- skills/                 # 技能定义，每个目录至少包含 SKILL.md
+|-- scripts/                # 安装、同步、校验、脚手架和导出脚本
+|-- shared/                 # hooks 与技能模板
+|-- adapters/               # Cursor、Cline、Copilot 适配说明
+|-- skill-catalog.yaml      # 技能 catalog、版本、依赖和安装顺序
+|-- MAINTENANCE.md          # 日常维护指南
+|-- CHANGELOG.md            # 版本变更记录
+`-- CLAUDE.md               # 仓库开发约定
 ```
+
+## 约定
+
+- 技能目录使用小写连字符命名，例如 `session-context`
+- 每个技能必须包含带 YAML frontmatter 的 `SKILL.md`
+- `SKILL.md` 中的 `name` 必须与目录名一致
+- 新增或修改技能后运行 `.\scripts\validate.ps1`
+- 提交信息格式：`<type>(<skill-name>): <description>`
