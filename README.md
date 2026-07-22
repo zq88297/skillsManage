@@ -2,7 +2,7 @@
 
 集中维护、版本控制和部署 AI 编程技能的仓库。`skills/` 是技能定义的唯一真相来源，`skill-catalog.yaml` 记录版本、分类、依赖和安装顺序。
 
-当前 catalog 共管理 **50 个技能**，覆盖项目工作流、代码规范、前端设计、文档处理、动画、数据查询、MCP 和 Web 测试等场景。
+当前 catalog 共管理 **51 个技能**，覆盖项目工作流、代码规范、学习教学、前端设计、文档处理、动画、数据查询、MCP 和 Web 测试等场景。
 
 ## 功能
 
@@ -142,7 +142,7 @@ Windows 可创建定时同步任务：
 
 | 分类 | 数量 | 示例 |
 | --- | ---: | --- |
-| 基础与元技能 | 6 | `session-context`、`skill-creator`、`karpathy-guidelines`、`skills-sync` |
+| 基础与元技能 | 7 | `session-context`、`skill-creator`、`karpathy-guidelines`、`skills-sync`、`teach` |
 | 设计与前端 | 19 | `frontend-design`、`impeccable`、`ui-ux-pro-max`、`react-bits` |
 | 文档与内容 | 7 | `docx`、`pdf`、`pptx`、`xlsx`、`doc-coauthoring` |
 | GSAP 动画 | 8 | `gsap-core`、`gsap-react`、`gsap-scrolltrigger`、`gsap-timeline` |

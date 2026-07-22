@@ -3,7 +3,7 @@
 # Used by install/sync/validate scripts for dependency resolution and metadata.
 
 catalog_version: "2.2"
-last_updated: "2026-07-16"
+last_updated: "2026-07-22"
 
 skills:
   # ==================================================================
@@ -91,6 +91,19 @@ skills:
     dependencies: []
     commands: []
     tags: [interview, planning, design-review, stress-test, decision-tree]
+
+  teach:
+    version: "1.0.0"
+    display_name: "Teach"
+    layer: meta
+    description: >
+      Teach the user a new skill or concept in a stateful workspace. Ground
+      lessons in a learning mission and trusted resources, then build durable
+      knowledge through retrieval practice, learning records, reusable HTML
+      lessons, and concise reference materials.
+    dependencies: []
+    commands: []
+    tags: [teaching, learning, education, retrieval-practice, lessons]
 
   # ==================================================================
   # Design Layer — visual art, UI design, frontend polish
@@ -636,11 +649,10 @@ skills:
 # Layer 0 (no deps) → Layer 1 (depend on layer 0)
 # ==================================================================
 dependency_order:
-  - [session-context, skill-creator, karpathy-guidelines, skills-sync, grill-me, full-output-enforcement]
+  - [session-context, skill-creator, karpathy-guidelines, skills-sync, grill-me, teach, full-output-enforcement]
   - [algorithmic-art, brand-guidelines, brandkit, canvas-design, design-taste-frontend, design-taste-frontend-v1, frontend-design, gpt-taste, high-end-visual-design, image-to-code, imagegen-frontend-mobile, imagegen-frontend-web, impeccable, industrial-brutalist-ui, minimalist-ui, react-bits, redesign-existing-projects, stitch-design-taste, ui-ux-pro-max]
   - [doc-coauthoring, docx, internal-comms, pdf, pptx, theme-factory, xlsx]
   - [gsap-core, gsap-frameworks, gsap-performance, gsap-plugins, gsap-react, gsap-scrolltrigger, gsap-timeline, gsap-utils]
   - [a-stock-data, claude-api, mcp-builder, slack-gif-creator, web-artifacts-builder, webapp-testing]
   - [project-workflow, skiis-context, task-orchestrator, template]
-
 
