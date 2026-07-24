@@ -4,11 +4,11 @@
 
 ## 1. 选择上下文目录
 
-按顺序选择：
+按 `.sharing-policy` 选择：
 
-1. `.codex/context/`
-2. 已存在的 `.claude/context/`
-3. 二者都不存在时，创建 `.codex/context/`
+1. `portable`：优先 `docs/ai-context/`
+2. `local-only`：使用 `.codex/context/` 或兼容的 `.claude/context/`
+3. 策略不存在：先按 `/session-load` 让用户选择
 
 ## 2. 扫描范围
 

@@ -2,13 +2,15 @@
 
 你是上下文恢复器。目标是在最少读取量下恢复项目状态。
 
-## 1. 选择上下文目录
+## 1. 选择共享策略和上下文目录
 
-按顺序选择：
+按顺序判断：
 
-1. `.codex/context/`
-2. 已存在的 `.claude/context/`
-3. 二者都不存在时，创建 `.codex/context/`
+1. 已有 `docs/ai-context/.sharing-policy`：使用 `docs/ai-context/`。
+2. 已有 `.codex/context/` 或 `.claude/context/`：读取 `.sharing-policy` 并检查 VCS 跟踪或忽略状态。
+3. 没有上下文：版本控制项目让用户选择一次“可跨环境”或“仅本机”；无版本控制时使用仅本机并说明限制。
+
+选择可跨环境时使用 `docs/ai-context/`；选择仅本机时使用 `.codex/context/`。用户有最终选择权，不自动 commit 或 push。
 
 Git 项目可把分支任务状态放在 `{context}/branches/{branch}/`；SVN 或物理分支目录只使用当前目录的 `{context}`。
 
@@ -16,16 +18,17 @@ Git 项目可把分支任务状态放在 `{context}/branches/{branch}/`；SVN �
 
 ## 2. 初始化（如需要）
 
-若上下文不存在，直接初始化：
+若上下文不存在，在用户完成共享策略选择后初始化：
 
 1. 创建 `{context}/reference/` 和 `{context}/tasks/done/`。
 2. 创建：
+   - `.sharing-policy`
    - `current-task.md`
    - `decisions.md`
    - `pitfalls.md`
    - `architecture.md`
 3. 轻量扫描项目顶层结构，记录构建文件、入口文件、主要目录和常用命令。
-4. 更新 `.gitignore`，忽略 `.codex/context/`；兼容旧目录时也忽略 `.claude/context/`。
+4. 按策略处理版本控制：可跨环境时确保 `docs/ai-context/` 可被跟踪；仅本机时忽略 `.codex/context/`，兼容旧目录时也忽略 `.claude/context/`。
 
 ## 3. 加载顺序
 
@@ -54,6 +57,8 @@ Git 项目可把分支任务状态放在 `{context}/branches/{branch}/`；SVN �
 ## 上下文已加载
 
 - 上下文目录：`{context}`
+- 共享策略：可跨环境 / 仅本机
+- 同步状态：已同步 / 待提交 / 待同步 / 仅本机
 - 当前任务：{一句话}
 - 已完成：{最多 3 条}
 - 进行中：{最多 3 条}
@@ -62,4 +67,4 @@ Git 项目可把分支任务状态放在 `{context}/branches/{branch}/`；SVN �
 - 风险/阻塞：{如有}
 ```
 
-摘要要短，随后继续处理用户的实际请求。
+仅本机模式必须补充：“切换开发环境后 AI 无法读取本次进度。”摘要要短，随后继续处理用户的实际请求。

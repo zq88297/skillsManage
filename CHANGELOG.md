@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-07-24 — session-context v2.3.0
+
+### Changed
+- Let users choose once between portable, version-controlled context and local-only context.
+- Added explicit `已同步`, `待提交`, `待同步`, and `仅本机` handoff states.
+- Added warnings when uncommitted or local-only context cannot follow the user to another development environment.
+- Prevented credentials and other secrets from being written to any session-context file.
+- Updated all session-context commands to use the same sharing policy and sync checks.
+
+---
+
 ## 2026-07-06 — Repository v2.0: Complete skill ecosystem
 
 ### Added (17 skills)

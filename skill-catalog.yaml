@@ -3,20 +3,20 @@
 # Used by install/sync/validate scripts for dependency resolution and metadata.
 
 catalog_version: "2.2"
-last_updated: "2026-07-22"
+last_updated: "2026-07-24"
 
 skills:
   # ==================================================================
   # Foundation Layer — auto-load, context, session persistence
   # ==================================================================
   session-context:
-    version: "2.2.0"
+    version: "2.3.0"
     display_name: "Session Context Manager"
     layer: foundation
     description: >
       MUST trigger on every coding conversation in a dev project. Maintains
-      local session context under .codex/context or an existing .claude/context:
-      current task, decisions, pitfalls, architecture notes, health checks,
+      session context with a user-selected portable or local-only policy:
+      current task, decisions, pitfalls, architecture notes, sync health,
       branch/module context, and cross-project task dispatch.
     dependencies: []
     commands:
@@ -26,7 +26,7 @@ skills:
       - session-load
       - session-save
       - task-send
-    tags: [context-management, session-persistence, auto-initialization]
+    tags: [context-management, session-persistence, cross-environment-handoff, auto-initialization]
 
   # ==================================================================
   # Meta Layer — skill creation and coding guidelines
@@ -655,4 +655,3 @@ dependency_order:
   - [gsap-core, gsap-frameworks, gsap-performance, gsap-plugins, gsap-react, gsap-scrolltrigger, gsap-timeline, gsap-utils]
   - [a-stock-data, claude-api, mcp-builder, slack-gif-creator, web-artifacts-builder, webapp-testing]
   - [project-workflow, skiis-context, task-orchestrator, template]
-

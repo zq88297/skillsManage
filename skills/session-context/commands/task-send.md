@@ -16,10 +16,10 @@
 
 1. 解析目标路径。
 2. 确认目录存在；不存在时询问用户更正或创建。
-3. 在目标目录按规则选择上下文：
-   - 优先 `{target}/.codex/context/`
-   - 兼容已存在的 `{target}/.claude/context/`
-   - 都不存在则创建 `{target}/.codex/context/`
+3. 在目标目录按共享策略选择上下文：
+   - `portable`：优先 `{target}/docs/ai-context/`
+   - `local-only`：使用 `{target}/.codex/context/` 或兼容的 `{target}/.claude/context/`
+   - 未初始化：按目标项目 `/session-load` 规则让用户选择；不要替用户决定是否纳入版本控制
 
 ## 2. 提取任务信息
 
@@ -101,5 +101,9 @@
 - 来源：{source}
 - 目标：{target}
 - 任务文件：`{target context}/tasks/{file}`
+- 共享策略：可跨环境 / 仅本机
+- 同步状态：已同步 / 待提交 / 待同步 / 仅本机
 - 下次处理：目标项目运行 `/session-load`
 ```
+
+目标为仅本机或任务文件尚未同步时，必须说明另一开发环境暂时无法收到该任务。
