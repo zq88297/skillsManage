@@ -564,6 +564,19 @@ skills:
     commands: []
     tags: [gif, slack, animation]
 
+  video-shotcraft:
+    version: "1.0.0"
+    display_name: "Video Shotcraft"
+    layer: tooling
+    description: >
+      Create cinematic product videos from real product screenshots, shot recipe
+      cards, reusable Remotion components, audio assets, and a production-ready
+      template. Use for product promos, frontend or webpage videos, motion-shot
+      recreation, and template-based product-video production.
+    dependencies: []
+    commands: []
+    tags: [video, remotion, motion-design, product-video, screenshots, audio]
+
   web-artifacts-builder:
     version: "1.0.0"
     display_name: "Web Artifacts Builder"
@@ -652,5 +665,5 @@ dependency_order:
   - [algorithmic-art, brand-guidelines, brandkit, canvas-design, design-taste-frontend, design-taste-frontend-v1, frontend-design, gpt-taste, high-end-visual-design, image-to-code, imagegen-frontend-mobile, imagegen-frontend-web, impeccable, industrial-brutalist-ui, minimalist-ui, react-bits, redesign-existing-projects, stitch-design-taste, ui-ux-pro-max]
   - [doc-coauthoring, docx, internal-comms, pdf, pptx, theme-factory, xlsx]
   - [gsap-core, gsap-frameworks, gsap-performance, gsap-plugins, gsap-react, gsap-scrolltrigger, gsap-timeline, gsap-utils]
-  - [a-stock-data, claude-api, mcp-builder, slack-gif-creator, web-artifacts-builder, webapp-testing]
+  - [a-stock-data, claude-api, mcp-builder, slack-gif-creator, video-shotcraft, web-artifacts-builder, webapp-testing]
   - [project-workflow, skiis-context, task-orchestrator, template]

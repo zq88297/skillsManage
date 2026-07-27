@@ -146,7 +146,7 @@ Windows 可创建定时同步任务：
 | 设计与前端 | 19 | `frontend-design`、`impeccable`、`ui-ux-pro-max`、`react-bits` |
 | 文档与内容 | 7 | `docx`、`pdf`、`pptx`、`xlsx`、`doc-coauthoring` |
 | GSAP 动画 | 8 | `gsap-core`、`gsap-react`、`gsap-scrolltrigger`、`gsap-timeline` |
-| 数据与工具 | 6 | `a-stock-data`、`claude-api`、`mcp-builder`、`webapp-testing` |
+| 数据与工具 | 7 | `a-stock-data`、`claude-api`、`mcp-builder`、`video-shotcraft`、`webapp-testing` |
 | 工作流 | 4 | `project-workflow`、`task-orchestrator`、`skiis-context` |
 
 完整技能名称、版本、描述、依赖和安装顺序以 [skill-catalog.yaml](skill-catalog.yaml) 为准。
