@@ -1,6 +1,10 @@
 ---
 name: session-context
-description: "MUST trigger on every coding or project-maintenance conversation in a dev project. Loads and maintains project session memory with user-selected portable or local-only storage: current task, decisions, pitfalls, architecture notes, branch/module context, cross-project and cross-environment handoff, and context health. Trigger on: 修改, 排查, debug, fix, change, investigate, generate, create, 帮我, 实现, 开发, 优化, 重构, 测试, 部署, 编译, 运行, 报错, 失败, 问题, /session-*, /context-*, /task-send, 保存上下文, 加载上下文, 继续工作, 会话接力."
+description: >
+  持久化开发任务上下文，用于跨会话、跨分支、跨项目或跨开发环境接力。仅当用户明确要求
+  加载、保存、恢复、继续或派发任务上下文，调用 /session-*、/context-*、/task-send，
+  或任务确定需要跨多个会话持续推进时使用。不用于一次性代码问答、普通文件修改、简单
+  Bug 修复、测试、构建、代码解释或仓库检查。
 ---
 
 # Session Context Management
@@ -50,8 +54,6 @@ description: "MUST trigger on every coding or project-maintenance conversation i
 
 ## 禁止行为
 
-- 不自动扫描、导入或处理 `.bugs/` 目录。
-- 不要求用户把 Bug 文件放入 `.bugs/`。
 - Bug 修复只使用当前对话中用户明确提供的描述、日志、截图、附件或指定路径。
 - 不把密码、Token、私钥、Cookie、生产凭据写入 `decisions.md`、`pitfalls.md`、`architecture.md` 或长期 `reference/`。
 

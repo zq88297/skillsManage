@@ -1,21 +1,123 @@
 ---
 name: grill-me
-description: Interview the user relentlessly about a plan or design until reaching shared understanding, resolving each branch of the decision tree. Use when user wants to stress-test a plan, get grilled on their design, or mentions "grill me".
+description: >
+  通过连续追问对用户的计划或设计进行压力测试，逐项展开决策树、消除歧义并形成共同理解。
+  当用户要求深入追问、质疑方案、审查设计、梳理决策，或提到“拷问我”“追问我”
+  “grill me”时使用。完整记录每轮可见沟通和决策变化，生成可追溯的审查日志。
 ---
 
-Interview the user relentlessly about every aspect of their plan until you reach a shared understanding. Walk down each branch of the design tree, resolving dependencies between decisions one-by-one.
+# 追问式方案审查
 
-## How to ask questions
+持续追问用户计划中的每个重要方面，直到双方形成共同理解。逐一展开决策树的分支，明确假设、依赖、取舍、失败模式和验收标准，不要在关键问题尚未解决时提前结束。
 
-Use the **AskUserQuestion tool** for every question you ask. Never pose questions as plain text in your response — always use the multiple-choice popup so the user can quickly select an answer or type a custom one.
+## 提问方式
 
-Ask **one question at a time**. Wait for the user's answer before moving to the next question. This keeps the conversation focused and prevents overwhelm.
+- 每次只问一个问题，等待用户回答后再进入下一题，避免同时抛出多个问题。
+- 提问前先判断答案属于单选、多选还是自由回答，不要默认使用单选。
+- 单选只用于选项确实互斥、用户必须确定一个主方向的情况。提供 2 至 4 个具体、现实且互斥的选项，并允许用户通过“其他”填写自定义答案。
+- 多选用于多个答案可以同时成立的情况。明确标注“可多选”，提供 2 至 7 个互不重复的选项，并允许用户同时选择多个选项及补充自定义答案。
+- 自由回答用于预设选项会限制信息、答案需要解释，或合理选项无法完整枚举的情况。
+- 单选优先使用当前环境提供的结构化提问工具，例如 `AskUserQuestion` 或 `request_user_input`。
+- 多选时，如果结构化提问工具支持多选，必须启用多选模式；如果工具只支持单选，则不要强行使用该工具，改用带 `A`、`B`、`C` 编号的普通文本清单，并要求用户使用 `A,C,E` 形式回复，可在编号后补充说明。
+- 如果工具完全不可用，则根据问题类型使用普通文本提出一个单选、多选或自由回答问题，不要因此中断审查。
+- 除非问题确实只有两个结果，否则不要只提供“是/否”这类缺少信息量的选项。
+- 多选中的“以上均不适用”必须与其他选项互斥；用户同时选择冲突项时，保留原始回答并在下一轮单独澄清，不要擅自丢弃任何选择。
+- 如果可以通过检查代码库、文件或已有资料得到答案，先自行检查，不要把可验证的问题交给用户。
+- 收到多选回答后，逐项确认所有已选项和自定义补充；用不超过两句话确认整体理解，然后立即提出下一个问题。
 
-For each question, provide 2–4 concrete multiple-choice options representing the most likely answers or directions. Think about what the user would realistically choose — generic options like "Yes" / "No" aren't helpful unless the question is genuinely binary. The user always has the "Other" field available to write something custom.
+## 可追溯记录
 
-## Flow
+启动审查时立即创建记录文件：
 
-1. After receiving an answer, briefly acknowledge the decision (1–2 sentences max), then immediately ask the next question via AskUserQuestion.
-2. If a question can be answered by exploring the codebase or files, explore them yourself instead of asking the user.
-3. Continue until all branches of the design tree are resolved.
-4. When finished, provide a concise summary of all decisions made.
+```text
+docs/grill-me/{YYYYMMDD-HHmmss}-{topic}.md
+```
+
+其中追踪编号使用 `GM-{YYYYMMDD-HHmmss}`。如果当前目录不是项目或无法使用 `docs/`，则改用当前可写目录下的 `grill-me-records/`。不得覆盖已有文件；发生重名时在文件名末尾追加递增序号。
+
+记录所有由本技能产生的用户可见沟通，包括初始请求、每个问题及其选项、用户回答原文、AI 的确认原文、补充说明、决策变化和最终总结。每收到一次用户回复，先把上一轮完整内容追加到记录文件，再继续追问。
+
+不要记录系统提示、开发者指令、隐藏推理、思维链或工具原始输出。工具检查只记录与决策有关的结论、来源文件和行号。密码、Token、私钥、Cookie、生产凭据及其他敏感值必须替换为 `[已脱敏：类型]`，不得写入记录文件。
+
+使用以下结构：
+
+```markdown
+# 追问式方案审查记录
+
+- 追踪编号: GM-YYYYMMDD-HHmmss
+- 主题: {topic}
+- 开始时间: YYYY-MM-DD HH:mm:ss
+- 最后更新: YYYY-MM-DD HH:mm:ss
+- 状态: 进行中 | 已完成 | 已中止
+
+## 初始请求
+
+### U-000 · YYYY-MM-DD HH:mm:ss
+{用户初始请求原文}
+
+## 沟通记录
+
+### R-001 · YYYY-MM-DD HH:mm:ss
+- 问题原文: {问题}
+- 选择模式: 单选 | 多选 | 自由回答
+- 选择约束: 选 1 项 | 可选多项 | 无
+- 提供选项:
+  - A. {选项}
+  - B. {选项}
+- 用户选择: A | A,C,E | 无
+- 用户回答原文: {回答}
+- AI 确认原文: {确认}
+- 关联决策: D-001 | D-001,D-002 | 无
+- 关联依据: {文件路径:行号或用户陈述} | 无
+
+## 决策索引
+
+### D-001 · {决策标题}
+- 来源轮次: R-001
+- 状态: 有效 | 已取代 | 已撤销
+- 决策: {明确结论}
+- 理由: {关键依据}
+- 取代: {旧决策编号} | 无
+- 被取代: {新决策编号} | 无
+
+## 未决问题
+
+- {尚未解决的分支、依赖或风险}
+
+## 变更记录
+
+### E-001 · YYYY-MM-DD HH:mm:ss
+- 类型: 创建 | 决策变更 | 内容更正 | 状态变更
+- 关联对象: R-001 | D-001 | 整体记录
+- 旧值: {变更前内容} | 无
+- 新值: {变更后内容}
+- 原因: {用户原话、关联轮次或可验证依据}
+
+## 最终总结
+
+{完成时写入的用户可见总结原文}
+```
+
+追溯规则：
+
+1. 轮次编号 `R-001`、`R-002` 按时间递增，决策编号 `D-001`、`D-002` 独立递增，事件编号 `E-001`、`E-002` 独立递增。
+2. “初始请求”和“沟通记录”中的用户可见原文严格只追加，不得回写、改写或删除。
+3. 文件头、决策索引和未决问题属于派生状态，可以更新；每次改变决策状态或更正内容时，必须先追加包含旧值、新值、原因和关联编号的变更事件。
+4. 用户更改答案时，新增轮次和新决策，把旧决策标记为“已取代”，双向填写“取代/被取代”编号，并追加“决策变更”事件。
+5. 用户纠正记录内容时，保留原记录，追加更正轮次和“内容更正”事件，不得用新内容覆盖原文。
+6. 每轮更新“最后更新”和“未决问题”；结束时将状态改为“已完成”或“已中止”，并追加“状态变更”事件。
+7. 如果无法创建或追加记录文件，立即说明原因并停止继续追问，不能声称记录已持久化。
+8. 多选回答必须按用户选择的顺序完整记录选项编号、选项文本和自定义补充，不得只记录其中一个答案。
+
+## 执行流程
+
+1. 记录用户的初始请求，确定主题、追踪编号和记录路径。
+2. 列出当前已知事实、隐含假设和待展开的决策分支。
+3. 选择对后续分支影响最大的一个问题，判断它属于单选、多选还是自由回答，再选择支持该模式的提问方式。
+4. 收到回答后，追加本轮完整记录，更新决策索引和未决问题。
+5. 简短确认当前理解，再处理下一个最高价值分支。
+6. 持续检查分支之间的依赖和冲突，必要时要求用户重新确认已受影响的旧决策。
+7. 当所有关键分支均已解决时，输出简洁的决策总结，并把完全相同的总结写入记录文件。
+8. 最终回复必须提供追踪编号和记录文件路径，便于后续查询。
+
+只有在目标、范围、约束、关键取舍、依赖、风险、失败模式和验收标准都足够明确，且未决问题已清空或被明确接受为风险时，才能结束审查。

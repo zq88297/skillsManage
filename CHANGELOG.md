@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-07-27 — grill-me v1.2.0
+
+### Changed
+- Localized the `grill-me` trigger metadata and workflow instructions into Chinese.
+
+### Added
+- Added append-only communication traces with stable round and decision identifiers.
+- Added decision supersession links, source references, timestamps, and final trace-path reporting.
+- Added mandatory redaction for credentials and other sensitive values.
+- Added explicit single-choice, multiple-choice, and free-answer question modes with a text fallback when tools only support single selection.
+
+---
+
+## 2026-07-27 — session-context v2.3.1 and project-workflow v1.5.1
+
+### Changed
+- Narrowed `session-context` activation to explicit context operations and work that must continue across sessions or environments.
+- Narrowed `project-workflow` activation to substantial, multi-stage, ambiguous, or high-risk engineering work.
+- Excluded one-shot questions, routine edits, isolated tests, straightforward bugs, and ordinary development commands from both skills.
+- Removed obsolete `.bugs/` directory handling guidance from `session-context`.
+
+---
+
 ## 2026-07-24 — session-context v2.3.0
 
 ### Changed
