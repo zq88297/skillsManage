@@ -3,7 +3,7 @@
 # Used by install/sync/validate scripts for dependency resolution and metadata.
 
 catalog_version: "2.2"
-last_updated: "2026-07-27"
+last_updated: "2026-07-28"
 
 skills:
   # ==================================================================
@@ -603,7 +603,7 @@ skills:
   # Workflow Layer — project lifecycle and task orchestration
   # ==================================================================
   project-workflow:
-    version: "1.5.1"
+    version: "1.6.0"
     display_name: "Project Lifecycle Manager"
     layer: workflow
     description: >
@@ -611,9 +611,11 @@ skills:
       requirements, design, implementation, testing, and acceptance. Use for
       new projects/modules, larger features, ambiguous or multi-stage work, and
       architecture, data-contract, security, migration, rollback, or formal
-      acceptance concerns; exclude routine small development tasks.
+      acceptance concerns. Requires a clear requirements document or a traced
+      grill-me interview before design; excludes routine small development tasks.
     dependencies:
       - session-context
+      - grill-me
     commands:
       - workflow-start
       - workflow-status

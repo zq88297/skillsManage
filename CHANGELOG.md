@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-28 — project-workflow v1.6.0
+
+### Changed
+- Required either a clear requirements document or a completed `grill-me` interview before entering solution design.
+- Prohibited the workflow from inventing product decisions when requirements are missing, conflicting, or unverifiable.
+- Added `grill-me` trace identifiers and log paths to the requirements artifact for decision traceability.
+- Declared `grill-me` as a `project-workflow` dependency and added catalog-driven dependency resolution to the Unix installer.
+
+---
+
 ## 2026-07-27 — grill-me v1.2.0
 
 ### Changed

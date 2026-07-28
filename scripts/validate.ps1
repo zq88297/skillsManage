@@ -168,7 +168,8 @@ Write-Host "--- Dependency Check ---" -ForegroundColor Yellow
 
 $depMap = @{
     'session-context'   = @()
-    'project-workflow'  = @('session-context')
+    'grill-me'          = @()
+    'project-workflow'  = @('session-context', 'grill-me')
     'task-orchestrator' = @('session-context')
 }
 

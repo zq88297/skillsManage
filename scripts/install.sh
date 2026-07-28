@@ -83,19 +83,61 @@ else
     IFS=',' read -ra TO_INSTALL <<< "$SELECTED_SKILLS"
 fi
 
-# Dependency resolution (simple: session-context before dependents)
+get_dependencies() {
+    local skill_name="$1"
+    awk -v target="$skill_name" '
+        $0 == "skills:" { in_skills = 1; next }
+        $0 == "dependency_order:" { exit }
+        in_skills && $0 == "  " target ":" { in_target = 1; next }
+        in_target && /^  [a-z0-9-]+:/ { exit }
+        in_target && /^    dependencies:$/ { in_dependencies = 1; next }
+        in_target && in_dependencies && /^      - [a-z0-9-]+$/ { print $2; next }
+        in_target && in_dependencies && /^    [a-z0-9_-]+:/ { exit }
+    ' "$CATALOG_FILE"
+}
+
+array_contains() {
+    local needle="$1"
+    shift
+    local item
+    for item in "$@"; do
+        [[ "$item" == "$needle" ]] && return 0
+    done
+    return 1
+}
+
 SORTED=()
-# Layer 0: no deps
-for s in "${TO_INSTALL[@]}"; do
-    if [[ "$s" == "session-context" ]]; then
-        SORTED+=("$s")
+VISITING=()
+
+resolve_skill() {
+    local skill_name="$1"
+    local dependency
+
+    skill_name="${skill_name//[[:space:]]/}"
+    [[ -z "$skill_name" ]] && return 0
+
+    if array_contains "$skill_name" "${SORTED[@]}"; then
+        return 0
     fi
-done
-# Layer 1: depend on session-context
-for s in "${TO_INSTALL[@]}"; do
-    if [[ "$s" != "session-context" ]]; then
-        SORTED+=("$s")
+    if array_contains "$skill_name" "${VISITING[@]}"; then
+        echo "Error: Dependency cycle detected at skill: $skill_name"
+        exit 1
     fi
+    if [[ ! -d "$SKILL_SRC/$skill_name" ]]; then
+        echo "Error: Skill source not found: $SKILL_SRC/$skill_name"
+        exit 1
+    fi
+
+    VISITING+=("$skill_name")
+    while IFS= read -r dependency; do
+        [[ -n "$dependency" ]] && resolve_skill "$dependency"
+    done < <(get_dependencies "$skill_name")
+    unset 'VISITING[${#VISITING[@]}-1]'
+    SORTED+=("$skill_name")
+}
+
+for skill_name in "${TO_INSTALL[@]}"; do
+    resolve_skill "$skill_name"
 done
 
 echo "Skills to install:"
