@@ -81,7 +81,7 @@ skills:
     tags: [skills-management, sync, update, local-install]
 
   grill-me:
-    version: "1.3.0"
+    version: "1.4.0"
     display_name: "追问式方案审查"
     layer: meta
     description: >
@@ -603,7 +603,7 @@ skills:
   # Workflow Layer — project lifecycle and task orchestration
   # ==================================================================
   project-workflow:
-    version: "1.6.0"
+    version: "1.7.0"
     display_name: "Project Lifecycle Manager"
     layer: workflow
     description: >
